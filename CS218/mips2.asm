@@ -130,6 +130,20 @@ main:
 
 ##########################################################
 
+# Load in arrays
+la $t0, aSides 			# aSides array
+la $t1, bSides			# bSides array
+la $t2, cSides			# cSides array
+la $t3, dSides			# dSides array
+la $t4, heights			# heights array
+la $t5, lengths			# length array
+lw $t6, len				# Length of arrays
+li $t7, 0				# Array index
+
+calculateLoop:
+	# Multiply lengths and heights
+
+
 # aSides calulation
 
 # bSides calculation
