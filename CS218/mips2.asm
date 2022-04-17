@@ -131,32 +131,83 @@ main:
 ##########################################################
 
 # Load in arrays
-la $t0, aSides 			# aSides array
-la $t1, bSides			# bSides array
-la $t2, cSides			# cSides array
-la $t3, dSides			# dSides array
-la $t4, heights			# heights array
-la $t5, lengths			# length array
-lw $t6, len				# Length of arrays
-li $t7, 0				# Array index
+la $s0, aSides 			# aSides array
+la $s1, bSides			# bSides array
+la $s2, cSides			# cSides array
+la $s3, dSides			# dSides array
+la $s4, heights			# heights array
+la $s5, lengths			# length array
+
+# Index registers
+lw $t8, len				# Length of arrays
+li $t9, 0				# Array index
 
 calculateLoop:
 	# Multiply lengths and heights
+	lw $t0,($s4)		# Load in heights
+	lw $t1, ($s5)		# Load in length
+	mul $t2, $t0, $t1	# t2 = heights x length
 
+	# aSides calulation
 
-# aSides calulation
+	lw $t3, ($s0)		# Load in aSides
+	mul $t3, $t3, $t2	# t3 = aSides x (heightsxlenghth)s
 
-# bSides calculation
+	# bSides calculation
 
-# cSides calculation
+	lw $t4, ($s1)		# Load in bSides
+	mul $t4, $t4, $t2	# t4 = bSides x (heightsxlengths)
 
-# dSides calculation
+	# cSides calculation
 
-# Add a,b,c,d sides
+	lw $t5, ($s2)		# Load in cSides
+	mul $t5, $t5, $t1	# t5 = cSides * lengths
+
+	# dSides calculation
+	lw $t6, ($s3)		# Load in dSides
+	mul $t6, $t6, $t1	# t6 = dSides * lengths
+
+	# Add a,b,c,d sides and store in t7
+	add $t7, $t7, $t2
+	add $t7, $t7, $t3
+	add $t7, $t7, $t4
+	add $t7, $t7, $t5
+	add $t7, $t7, $t6
+
+	# Store results in surfaceArea array
+	sw $t7, (surfaceArea)
+
+	# Ccheck if end of array
+	blt $t9, $t8, calculateLoop
+
+	# Update array addresses
+	addu $s0, $s0, 4
+	addu $s1, $s1, 4
+	addu $s2, $s2, 4
+	addu $s3, $s2, 4
+	addu $s4, $s4, 4
+	addu $s5, $s5, 4
 
 # Find sum
 
+la $t0, surfaceArea			# Load in surfaceArea array
+li $t1, 0				# Loop index = 0
+lw $t2, len				# Length of array
+li $t3, 0	
+
+sumLoop:
+	lw $t4, ($t0)
+	add $t3, $t3, $t4	# sum = sum + tAreas[i]
+	add $t1, $t1, 1		# Increment index
+	add $t0, $t0, 4		# Get next tAreas value
+
+	blt $t1, $t2, sumLoop
+	sw $t3, saSum
+
 # Find average
+li $t5, 0
+div $t5, $t3, $t2
+sw $t5, saAve
 
 # Find median
 
