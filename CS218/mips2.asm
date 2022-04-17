@@ -131,87 +131,134 @@ main:
 ##########################################################
 
 # Load in arrays
-la $s0, aSides 			# aSides array
-la $s1, bSides			# bSides array
-la $s2, cSides			# cSides array
-la $s3, dSides			# dSides array
-la $s4, heights			# heights array
-la $s5, lengths			# length array
+la $t0, aSides 			# aSides array
+la $t1, bSides			# bSides array
+la $t2, cSides			# cSides array
+la $t3, dSides			# dSides array
+la $t4, heights			# heights array
+la $t5, lengths			# length array
+la $t6, surfaceAreas
 
 # Index registers
 lw $t8, len				# Length of arrays
-li $t9, 0				# Array index
+li $t7, 0
 
 calculateLoop:
 	# Multiply lengths and heights
-	lw $t0,($s4)		# Load in heights
-	lw $t1, ($s5)		# Load in length
-	mul $t2, $t0, $t1	# t2 = heights x length
+	lw $s0,($t4)		# Load in heights
+	lw $s1, ($t5)		# Load in length
+	lw $s3, ($t0)		# Load in aSides
+	lw $s4, ($t1)		# Load in bSides
+	lw $s5, ($t2)		# Load in cSides
+	lw $s6, ($t3)		# Load in dSides
+
+	mul $s2, $s0, $s1	# t2 = heights x length
 
 	# aSides calulation
-
-	lw $t3, ($s0)		# Load in aSides
-	mul $t3, $t3, $t2	# t3 = aSides x (heightsxlenghth)s
+	mul $s3, $s3, $s2	# t3 = aSides x (heightsxlenghth)s
 
 	# bSides calculation
-
-	lw $t4, ($s1)		# Load in bSides
-	mul $t4, $t4, $t2	# t4 = bSides x (heightsxlengths)
+	mul $s4, $s4, $s2	# t4 = bSides x (heightsxlengths)
 
 	# cSides calculation
-
-	lw $t5, ($s2)		# Load in cSides
-	mul $t5, $t5, $t1	# t5 = cSides * lengths
+	mul $s5, $s5, $s1	# t5 = cSides * lengths
 
 	# dSides calculation
-	lw $t6, ($s3)		# Load in dSides
-	mul $t6, $t6, $t1	# t6 = dSides * lengths
+	mul $s6, $s6, $s1	# t6 = dSides * lengths
 
 	# Add a,b,c,d sides and store in t7
-	add $t7, $t7, $t2
-	add $t7, $t7, $t3
-	add $t7, $t7, $t4
-	add $t7, $t7, $t5
-	add $t7, $t7, $t6
+	addu $s7, $s7, $s2
+	addu $s7, $s7, $s3
+	addu $s7, $s7, $s4
+	addu $s7, $s7, $s5
+	addu $s7, $s7, $s6
 
-	# Store results in surfaceArea array
-	sw $t7, (surfaceArea)
+	addu $t7, $t7, $s7
+	sw $t7, saSum
 
-	# Ccheck if end of array
-	blt $t9, $t8, calculateLoop
+	sw $s7, ($t6)
 
 	# Update array addresses
-	addu $s0, $s0, 4
-	addu $s1, $s1, 4
-	addu $s2, $s2, 4
-	addu $s3, $s2, 4
-	addu $s4, $s4, 4
-	addu $s5, $s5, 4
+	add $t0, $t0, 4
+	add $t1, $t1, 4
+	add $t2, $t2, 4
+	add $t3, $t2, 4
+	add $t4, $t4, 4
+	add $t5, $t5, 4
+	add $t6, $t6, 4
 
-# Find sum
+	sub $t8, $t8, 1
 
-la $t0, surfaceArea			# Load in surfaceArea array
-li $t1, 0				# Loop index = 0
-lw $t2, len				# Length of array
-li $t3, 0	
+	bnez $t8, calculateLoop
 
-sumLoop:
-	lw $t4, ($t0)
-	add $t3, $t3, $t4	# sum = sum + tAreas[i]
-	add $t1, $t1, 1		# Increment index
-	add $t0, $t0, 4		# Get next tAreas value
-
-	blt $t1, $t2, sumLoop
-	sw $t3, saSum
-
-# Find average
-li $t5, 0
-div $t5, $t3, $t2
+# Find avverage of surfaceAreas
+lw $t0, len
+lw $t6, saSum
+div $t5, $t6, $t0
 sw $t5, saAve
 
 # Find median
+la $t0, surfaceAreas
+lw $t1, len
 
-# Find min and max
+div $t2, $t1, 2
+mul $t3, $t2, 4		# Index offset?
+add $t4, $t0, $t3	
+
+lw $t5, ($t4)		#Array[len/2]
+sub $t4, $t4, 4
+
+lw $t6, ($t4)		#array[len/(2-1)]
+add $t7, $t6, $t5
+div $t8, $t7, 2
+
+sw $t8, saMid		# Save median in variable
+
+# Calculate min and max of tAreas
+li $s2, 0			# Reset value in s2
+la $s2, surfaceAreas
+li $t0, 0 			# Index
+lw $t1, ($s2)		# Minimum
+lw $t2, ($s2)		# Maximum
+lw $t3, len
+
+# Find minimum and maximum of surfaceAreas
+findMinMaxLoop:
+	lw $t4, ($s2)	
+	bge $t4, $t1, notMinimum
+	sw $t1, saMin
+	
+notMinimum:
+	ble $t4, $t2, notMaximum
+	lw $t2, ($s2)
+
+notMaximum:
+	add $s2, $s2, 4		# Get next item in tAreas
+	add $t0, $t0, 1		# index++
+
+	blt $t0, $t3, findMinMaxLoop	#Loop if index is still in range
+
+	sw $t1, saMin		# Save minimum value
+	sw $t2, saMax		# Save max to variable
+
+
+# Print surfaceArea array
+la $s0, surfaceAreas
+lw $s1, len
+
+printLoop:
+    li $v0, 1               # Print current value
+    lw $a0, ($s0)
+    syscall
+
+    add $s0, $s0, 4
+    sub $s1, $s1, 1
+
+    li $v0, 4              #Print formatting blank
+    la $a0, blnks
+    syscall
+
+    bnez $s1, printLoop
 
 ##########################################################
 #  Display results.
