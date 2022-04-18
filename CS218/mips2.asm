@@ -141,7 +141,6 @@ la $t6, surfaceAreas
 
 # Index registers
 lw $t8, len				# Length of arrays
-li $t7, 0
 
 calculateLoop:
 	# Multiply lengths and heights
@@ -152,31 +151,30 @@ calculateLoop:
 	lw $s5, ($t2)		# Load in cSides
 	lw $s6, ($t3)		# Load in dSides
 
-	mul $s2, $s0, $s1	# t2 = heights x length
+	mul $s2, $s0, $s1	# s2 = heights x length
 
 	# aSides calulation
-	mul $s3, $s3, $s2	# t3 = aSides x (heightsxlenghth)s
+	mul $s3, $s3, $s2	# s3 = aSides x (heightsxlenghth)
 
 	# bSides calculation
-	mul $s4, $s4, $s2	# t4 = bSides x (heightsxlengths)
+	mul $s4, $s4, $s2	# s4 = bSides x (heightsxlengths)
+
+	add $s7, $s3, $s4
 
 	# cSides calculation
-	mul $s5, $s5, $s1	# t5 = cSides * lengths
+	mul $s5, $s5, $s1	# s5 = cSides * lengths
+
+	add $s7, $s7, $s5
 
 	# dSides calculation
-	mul $s6, $s6, $s1	# t6 = dSides * lengths
+	mul $s6, $s6, $s1	# 6 = dSides * lengths
 
-	# Add a,b,c,d sides and store in t7
-	addu $s7, $s7, $s2
-	addu $s7, $s7, $s3
-	addu $s7, $s7, $s4
-	addu $s7, $s7, $s5
-	addu $s7, $s7, $s6
+	add $s7, $s7, $s6
 
-	addu $t7, $t7, $s7
-	sw $t7, saSum
+	add $s8, $s8, $s7
+	sw $s8, saSum
 
-	sw $s7, ($t6)
+	sw $s7, ($t6)  # Save results in s7 to t6
 
 	# Update array addresses
 	add $t0, $t0, 4
