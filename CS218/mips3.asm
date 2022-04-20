@@ -826,8 +826,54 @@ jr $ra				# Return function
 .globl diagonalsStats
 diagonalsStats:
 
-# Find min, max, average
-# Use code from previous assignments
+# Find average
+jal findAverage
+
+# Find median
+la $t0, $a0			# Load in diagonal array
+lw $t1, $a1			# Load in length of array
+
+div $t2, $t1, 2
+mul $t3, $t2, 4		# Index offset
+add $t4, $t0, $t3	
+
+lw $t5, ($t4)		#Array[len/2]
+sub $t4, $t4, 4
+
+lw $t6, ($t4)		#array[len/(2-1)]
+add $t7, $t6, $t5
+div $t8, $t7, 2
+
+sw $t8, $a2		# Save median in a2 register
+
+# Calculate min and max of tAreas
+li $s2, 0			# Reset value in s2
+la $s2, $a0			# Load in diagonal array
+li $t0, 0 			# Index
+lw $t1, ($s2)		# Minimum
+lw $t2, ($s2)		# Maximum
+lw $t3, $a1			# Load in length of array
+
+# Find minimum and maximum of surfaceAreas
+findMinMaxLoop:
+	lw $t4, ($s2)	
+	bge $t4, $t1, notMinimum
+	sw $t1, $a2
+	
+notMinimum:
+	ble $t4, $t2, notMaximum
+	lw $t2, ($s2)
+
+notMaximum:
+	add $s2, $s2, 4		# Get next item in tAreas
+	add $t0, $t0, 1		# index++
+
+	blt $t0, $t3, findMinMaxLoop	#Loop if index is still in range
+
+	sw $t1, $a2		# Save minimum value
+	sw $t2, $a3		# Save max to variable
+
+jr $ra
 
 .end diagonalStats
 
