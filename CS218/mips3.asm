@@ -695,6 +695,12 @@ prtHeaders:
 .globl	calcDiagonals
 calcDiagonals:
 
+# Load in registers
+la $v0, $a0
+la $v1, $a1
+la $v2, $a2
+la $v3, $a3
+
 calculateLoop:
 
 # a[i]xb[i]^2
@@ -733,31 +739,18 @@ jr $ra
 .globl iSqrt
 iSqrt:
 
-lw $v0, $a0			# Store square root of integer
-lw $v1, 50			# Times to loop for estimate
-lw $v2, $a0			# Load in integer
-
-lw $t0, 0			# Temp register to store a number
-lw $t1, 50			# Loop condition
+mov $v0, $a0
+li $t0, 0
 
 sqrtLoop:
-	# iNumber / iSqrtest
-	div $t0, $v2, $v0
+	div $t1, $a0, $v0
+	add $v0, $t1, $v0
+	div $v0, $v0, 2
 
-	# (iNumber / iSqrtest) + iSqrtest
-	add $t0, $t0, $v0\
-
-	# ((iNumber / iSqrtest) + iSqrtest) / 2
-	div $t0, $t0, 2
-
-	# Store results in v0
-	sw $t0, $v0
-
-	sub $t1, $t1, 1			# Check if end of loop
-
-	bnez $t1, sqrtLoop
-
-jr $ra
+	add $t0, $t0, 1
+	blt $t0, 50, sqrtLoop
+	
+	jr $ra
 
 .end iSprt
 
