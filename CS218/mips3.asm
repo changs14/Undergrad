@@ -685,9 +685,9 @@ prtHeaders:
 #	$a0	- starting address of the aSides array
 #	$a1	- starting address of the bSides array
 #	$a2	- starting address of the cSides array
-#	$a3	- starting address of the dSides array
+#	$a3	- starting address of trray
 #	($fp)	- length
-#	4($fp)	- starting address of the diags array
+#	4($fp)	- starting address of the diags arhe dSides aray
 
 #    Returns:
 #	diag[] areas array via passed address
@@ -763,11 +763,19 @@ gnomeSort:
 .globl findSum
 findSum:
 
-# Load in diagonal and length array
+li $t0, $a1
+li $t1, 0
 
-# sumLoop:
+# Load in diagonal and length array - a0 = integer array a1 - length of array
+sumLoop:
+	add $t1, $t1, ($a0)			# Add current index to running sum
+	sw $v0, $t1					# Save current sum to $v0
+	sub $t1, $t1, 1				# Loop condition
+	bnez $t1, sumLoop			
 
-# store sum in v0 and return
+jr $ra							# Return function
+
+.end findSum
 
 #####################################################################
 #  Find floating point average function.
@@ -784,14 +792,13 @@ findSum:
 .globl findAverage
 findAverage:
 
-# Load in variables
+jal findSum			# Call findSum function
+sw $t0, $v0			# v0 = sum, store in t0
+div $t0, len		# Divide t0 by length of array
+sw $t0, $v0			# Save average in $v0
+jr $ra				# Return function
 
-# Call find sum function
-
-# v0 = sum so divide by length
-
-# void?
-
+.end findAverage
 
 
 #####################################################################
@@ -822,7 +829,7 @@ diagonalsStats:
 # Find min, max, average
 # Use code from previous assignments
 
-
+.end diagonalStats
 
 
 #####################################################################
