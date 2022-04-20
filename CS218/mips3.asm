@@ -719,6 +719,7 @@ calcDiagonals:
 
 # Loop conditions
 
+jr $ra
 
 .end calcDiagonals
 
@@ -734,6 +735,22 @@ calcDiagonals:
 .globl iSqrt
 iSqrt:
 
+lw $v0, $a0			# Store square root of integer
+lw $v1, 50			# Times to loop for estimate
+lw $v2, $a0			# Load in integer
+
+lw $t0, 0			# Temp register to store a number
+lw $t1, 50			# Loop condition
+
+sqrtLoop:
+	# iNumber / iSqrtest
+	div $t0, $v2, $v0
+
+	#
+
+
+jr $ra
+.end iSprt
 
 
 
