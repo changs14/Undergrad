@@ -695,9 +695,7 @@ prtHeaders:
 .globl	calcDiagonals
 calcDiagonals:
 
-# Load in variables
-
-# Start loop
+calculateLoop:
 
 # a[i]xb[i]^2
 
@@ -746,15 +744,22 @@ sqrtLoop:
 	# iNumber / iSqrtest
 	div $t0, $v2, $v0
 
-	#
+	# (iNumber / iSqrtest) + iSqrtest
+	add $t0, $t0, $v0\
 
+	# ((iNumber / iSqrtest) + iSqrtest) / 2
+	div $t0, $t0, 2
+
+	# Store results in v0
+	sw $t0, $v0
+
+	sub $t1, $t1, 1			# Check if end of loop
+
+	bnez $t1, sqrtLoop
 
 jr $ra
+
 .end iSprt
-
-
-
-
 
 #####################################################################
 #  Sort a list of numbers using gnome sort algorithm.
@@ -816,7 +821,6 @@ sw $t0, $v0			# Save average in $v0
 jr $ra				# Return function
 
 .end findAverage
-
 
 #####################################################################
 #  MIPS assembly language procedure, diagonalsStats() to find the
@@ -893,7 +897,6 @@ notMaximum:
 jr $ra
 
 .end diagonalStats
-
 
 #####################################################################
 #  MIPS assembly language procedure, displayStats(), to display
