@@ -695,33 +695,80 @@ prtHeaders:
 .globl	calcDiagonals
 calcDiagonals:
 
-# Load in registers
-la $v0, $a0
-la $v1, $a1
-la $v2, $a2
-la $v3, $a3
+# Load and preserve registers
+subu $sp, $sp, 24
+sw $s0, ($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $fp, 16($sp)
+sw $ra, 20($sp)
+
+addu $fp, $sp, 4		# Frame pointer
+
+# Get addressses of sides
+move $s0, $a0			# aSides
+move $s1, $a1			# bSides
+move $s2, $a2			# cSides
+move $s3, $a3			# dSides?
+li $s4, 0				# Index for loop
 
 calculateLoop:
+	# t4 = a[i]xb[i]^2
+	lw $t0, ($s0)		# Load in aSides
+	lw $t1, ($s1)		# Load in bSides
+	mul $t1, $t1, $t1	# b[i]^2
+	mul $t4, $t0, $t1	# a[i]xb[i]^2
 
-# a[i]xb[i]^2
+	# t5 = a[i]^2xb[i]
+	lw $t1, ($s1)		# Get bSides
+	mul $t0, $t0, $t0	# a[i]^2
+	mul $t5, $t0, $t1	# a[i]^2xb[i]
 
-# a[i]^2xb[i]
+	# t6 = a[i]xc{i}^2
+	lw $t0, ($s0)		# Load in aSides
+	lw $t2, ($s2)		# Load in cSides
+	mul $t2, $t2, $t2	# c[i]^2
+	mul $t6, $t0, $t2	# a[i]xc{i}^2
 
-# a[i]xc{i}^2
+	# t7 = b[i]xd[i]^2
+	lw $t1, ($s1)		# Load in bSides
+	lw $t3, ($s3)		# Load in dSides
+	mul $t3, $t3, $t3	# d[i]^2
+	mul $t7, $t1, $t3	# [i]xd[i]^2
 
-# b[i]xd[i]^2
+	# add all results
+	add $t8, $t4, $t5
+	add $t8, $t8, $t6
+	add $t8, $t8, $t7
 
-# add all results
+	# t9 = b[i]-a[i]
+	lw $t0, ($s0)
+	lw $t1, ($s1)
+	sub $t9, $t1, $t0
 
-# b[i]-a[i]
+	# Divide
+	div $t8, $t8, $t9
 
-# Divide
+	# Square root answer
+	move $a0, $t8
+	jal iSqrt
 
-# Square root answer
+	sw $v0, 4($sp)		# save results in diagonal array
 
-# Store in diags[i]
+	# Update addresses
+	add $s0, $s0, 4
+	add $s1, $s1, 4
+	add $s2, $s2, 4
+	add $s3, $s3, 4
 
-# Loop conditions
+	add $s4, $s4, 1
+
+	blt $s4, $s3, calculateLoop
+
+# Call gnomeSort function
+move $a0, $v0
+jal gnomeSort
 
 jr $ra
 
@@ -749,7 +796,7 @@ sqrtLoop:
 
 	add $t0, $t0, 1
 	blt $t0, 50, sqrtLoop
-	
+
 	jr $ra
 
 .end iSprt
