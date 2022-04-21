@@ -807,8 +807,34 @@ sqrtLoop:
 .globl gnomeSort
 gnomeSort:
 
-# Gnome Sort diagonals array?
+# a0 = array address
 
+mul $t1, $t1, 2  # count = count *2
+li $v0, 0		 # Register to hold temp int
+
+gnomeLoop:
+	slt $t3, $v0, $t1 # (i<n) >= $t3
+	bew $t3, $zero, end
+	bne $v0, $zero, compare
+	add $v0, $v0, 4
+
+compareLoop:
+	add $t2, $t0, $v0
+	lw $t4, -4($t2)
+	lw $t5, ($t2)
+	blt $t5, $t4, swapLoop
+	add $v0, $v0, 4
+	j loop
+
+swapLoop:
+	sw $t4, ($t2)
+	sw $t5, -4($t2)
+	add $v0, $v0, -4
+	j loop
+
+jr $ra
+
+.end gnomeSort
 
 
 #####################################################################
