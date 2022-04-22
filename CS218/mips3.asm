@@ -1,3 +1,10 @@
+#  Name: Stephaney Chang	
+#  NSHE ID: 2001508920
+#  Section: 1003
+#  Assignment: MIPS #2
+#  Description: This program will calculate the diagonal of a trapezoid using
+#				arrays of a/b/c/d sides of the trapezoid.
+
 #  CS 218, MIPS Assignment #3
 #  MIPS assembly language main program and procedures:
 
@@ -636,7 +643,7 @@ main:
 
 	li	$v0, 10
 	syscall					# au revoir...
-.end
+.end main
 
 #####################################################################
 #  Display headers.
@@ -716,42 +723,44 @@ lw $s5, 4($fp)			# Store diagonals?
 
 calculateLoop:
 	# t4 = a[i]xb[i]^2
-	lw $t0, ($s0)		# Load in aSides
 	lw $t1, ($s1)		# Load in bSides
-	lw $t2, ($s2)		# Load in cSides
-	lw $t3, ($s3)		# Load in dSides
-
 	mul $t1, $t1, $t1	# b[i]^2
+	lw $t0, ($s0)		# Load in aSides
 	mul $t4, $t0, $t1	# a[i]xb[i]^2
 
 	# t5 = a[i]^2xb[i]
-	lw $t1, ($s1)		# Load in bSides
 	mul $t0, $t0, $t0	# a[i]^2
+	lw $t1, ($s1)		# Load in bSides
 	mul $t5, $t0, $t1	# a[i]^2xb[i]
 
+	sub $s6, $t4, $t5
+
 	# t6 = a[i]xc{i}^2
-	lw $t0, ($s0)		# Load in aSides
+	lw $t2, ($s2)		# Load in cSides
 	mul $t2, $t2, $t2	# c[i]^2
+	lw $t0, ($s0)		# Load in aSides
 	mul $t6, $t0, $t2	# a[i]xc{i}^2
 
-	# t7 = b[i]xd[i]^2
-	mul $t3, $t3, $t3	# d[i]^2
-	mul $t7, $t1, $t3	# [i]xd[i]^2 
+	sub $s6, $s6, $t6
 
-	# add all results
-	add $t8, $t4, $t5
-	add $t8, $t8, $t6
-	add $t8, $t8, $t7
+	# t7 = b[i]xd[i]^2
+	lw $t3, ($s3)		# Load in dSides
+	mul $t3, $t3, $t3	# d[i]^2
+	lw $t1, ($s1)		# Load in bSides
+	mul $t7, $t1, $t3	# b[i]xd[i]^2 
+
+	add $s6, $s6, $t7
 
 	# t9 = b[i]-a[i]
 	lw $t1, ($s1)
+	lw $t0, ($s0)		# Load in aSides
 	sub $t9, $t1, $t0
 
 	# Divide
-	div $a0, $t8, $t9
+	div $a0, $s6, $t9
 
 	# Square root answer
-	jal iSqrt
+	# jal iSqrt
 
 	# sw $v0, ($s5)		# save results in diagonal array
 
@@ -794,6 +803,7 @@ jr $ra
 #	$v0   - square root of integer
 
 .globl iSqrt
+.ent iSqrt
 iSqrt:
 
 move $v0, $a0
@@ -821,28 +831,28 @@ gnomeSort:
 # a0 - array
 # a1 - length?
 
-move $t1, $a1
-mul $t1, $t1, 2		# Count * 2
-li $v0, 0
+move $t1, $a1		# Adress of array
+mul $t1, $t1, 2		# size * 2
+li $v0, 0			# i 
 
 gnomeLoop:
 	slt $t0, $v0, $t1
-	beq $t0, $zero, endLoop
-	bne $v0, $zero, compareValues
-	add $v0, $v0, 4
+	beq $t0, 0, endLoop
+	bne $v0, 0, compareValues # compare values if i==0
+	add $v0, $v0, 4	# i= i +1
 
 compareValues:
-	add $t2, $t3, $v0
+	add $t2, $t3, $v0		# s2 = diag[i]
 	lw $t4, -4($t2)			# diag[i-1]
 	lw $t5, 0($t2)			# diag[i]
-	blt $t5, $t4, switchPos
-	add $v0, $v0, 4
+	blt $t5, $t4, switchPos	# switch positions if diag[i] < diag[i-1]
+	add $v0, $v0, 4			# get next index
 	j gnomeLoop
 
 switchPos:
-	sw $t4, 0($t2)
+	sw $t4, 0($t2)			# switch positions of current two values
 	sw $t5, -4($t2)
-	add $v0, $v0, 4
+	sub $v0, $v0, 4			# i = i -1
 	j gnomeLoop
 
 endLoop:
@@ -851,8 +861,7 @@ endLoop:
 	add $sp, $sp, 4
 	jr $ra
 
-
-
+.end gnomeSort
 #####################################################################
 #  Find sum function.
 #	Find sum of passed array.
