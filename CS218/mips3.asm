@@ -697,7 +697,7 @@ calcDiagonals:
 
 # Load and preserve registers
 subu $sp, $sp, 24
-sw $s0, ($sp)
+sw $s0, 0($sp)
 sw $s1, 4($sp)
 sw $s2, 8($sp)
 sw $s3, 12($sp)
@@ -711,31 +711,32 @@ move $s0, $a0			# aSides
 move $s1, $a1			# bSides
 move $s2, $a2			# cSides
 move $s3, $a3			# dSides?
-li $s4, 0				# Index for loop
+lw $s4, ($fp)			# Index for loop
+lw $s5, 4($fp)			# Store diagonals?
 
 calculateLoop:
 	# t4 = a[i]xb[i]^2
 	lw $t0, ($s0)		# Load in aSides
 	lw $t1, ($s1)		# Load in bSides
+	lw $t2, ($s2)		# Load in cSides
+	lw $t3, ($s3)		# Load in dSides
+
 	mul $t1, $t1, $t1	# b[i]^2
 	mul $t4, $t0, $t1	# a[i]xb[i]^2
 
 	# t5 = a[i]^2xb[i]
-	lw $t1, ($s1)		# Get bSides
+	lw $t1, ($s1)		# Load in bSides
 	mul $t0, $t0, $t0	# a[i]^2
 	mul $t5, $t0, $t1	# a[i]^2xb[i]
 
 	# t6 = a[i]xc{i}^2
 	lw $t0, ($s0)		# Load in aSides
-	lw $t2, ($s2)		# Load in cSides
 	mul $t2, $t2, $t2	# c[i]^2
 	mul $t6, $t0, $t2	# a[i]xc{i}^2
 
 	# t7 = b[i]xd[i]^2
-	lw $t1, ($s1)		# Load in bSides
-	lw $t3, ($s3)		# Load in dSides
 	mul $t3, $t3, $t3	# d[i]^2
-	mul $t7, $t1, $t3	# [i]xd[i]^2
+	mul $t7, $t1, $t3	# [i]xd[i]^2 
 
 	# add all results
 	add $t8, $t4, $t5
@@ -743,32 +744,41 @@ calculateLoop:
 	add $t8, $t8, $t7
 
 	# t9 = b[i]-a[i]
-	lw $t0, ($s0)
 	lw $t1, ($s1)
 	sub $t9, $t1, $t0
 
 	# Divide
-	div $t8, $t8, $t9
+	div $a0, $t8, $t9
 
 	# Square root answer
-	move $a0, $t8
 	jal iSqrt
 
-	sw $v0, 4($sp)		# save results in diagonal array
+	# sw $v0, ($s5)		# save results in diagonal array
 
 	# Update addresses
 	add $s0, $s0, 4
 	add $s1, $s1, 4
 	add $s2, $s2, 4
 	add $s3, $s3, 4
+	add $s5, $s5, 4
 
-	add $s4, $s4, 1
+	sub $s4, $s4, 1
 
-	blt $s4, $s3, calculateLoop
+	bnez $s4, calculateLoop
 
 # Call gnomeSort function
-move $a0, $v0
+move $a0, $s5
+lw $a1, ($fp)
 jal gnomeSort
+
+# Restore?
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $fp, 16($sp)
+lw  $ra, 20($sp)
+addu $sp, $sp, 24
 
 jr $ra
 
@@ -786,20 +796,20 @@ jr $ra
 .globl iSqrt
 iSqrt:
 
-mov $v0, $a0
-li $t0, 0
+move $v0, $a0
+li $t0, 50
 
 sqrtLoop:
 	div $t1, $a0, $v0
 	add $v0, $t1, $v0
 	div $v0, $v0, 2
 
-	add $t0, $t0, 1
-	blt $t0, 50, sqrtLoop
+	sub $t0, $t0, 1
+	bnez $t0, sqrtLoop
 
 	jr $ra
 
-.end iSprt
+.end iSqrt
 
 #####################################################################
 #  Sort a list of numbers using gnome sort algorithm.
@@ -807,7 +817,39 @@ sqrtLoop:
 .globl gnomeSort
 gnomeSort:
 
-# Gnome Sort diagonals array?
+# Gnome Sort diagonals array
+# a0 - array
+# a1 - length?
+
+move $t1, $a1
+mul $t1, $t1, 2		# Count * 2
+li $v0, 0
+
+gnomeLoop:
+	slt $t0, $v0, $t1
+	beq $t0, $zero, endLoop
+	bne $v0, $zero, compareValues
+	add $v0, $v0, 4
+
+compareValues:
+	add $t2, $t3, $v0
+	lw $t4, -4($t2)			# diag[i-1]
+	lw $t5, 0($t2)			# diag[i]
+	blt $t5, $t4, switchPos
+	add $v0, $v0, 4
+	j gnomeLoop
+
+switchPos:
+	sw $t4, 0($t2)
+	sw $t5, -4($t2)
+	add $v0, $v0, 4
+	j gnomeLoop
+
+endLoop:
+	srl $t1, $t1, 2
+	lw $ra, ($sp)
+	add $sp, $sp, 4
+	jr $ra
 
 
 
@@ -825,13 +867,17 @@ gnomeSort:
 .globl findSum
 findSum:
 
-li $t0, $a1
-li $t1, 0
+move $s0, $a1
+move $t1, $a1			# Loop condition
+li $t2, 0			# Running sum
 
 # Load in diagonal and length array - a0 = integer array a1 - length of array
 sumLoop:
-	add $t1, $t1, ($a0)			# Add current index to running sum
-	sw $v0, $t1					# Save current sum to $v0
+	lw $t4, ($s0)
+	addu $v0, $v0, $t4		# Add current index to running sum
+	
+	addu $s0, $s0, 4
+
 	sub $t1, $t1, 1				# Loop condition
 	bnez $t1, sumLoop			
 
@@ -854,10 +900,12 @@ jr $ra							# Return function
 .globl findAverage
 findAverage:
 
+lw $t1, len
+
 jal findSum			# Call findSum function
-sw $t0, $v0			# v0 = sum, store in t0
-div $t0, len		# Divide t0 by length of array
-sw $t0, $v0			# Save average in $v0
+move $t0, $v0			# v0 = sum, store in t0
+div $t0, $t1		# Divide t0 by length of array
+move $v0, $t0			# Save average in $v0
 jr $ra				# Return function
 
 .end findAverage
@@ -891,8 +939,8 @@ diagonalsStats:
 jal findAverage
 
 # Find median
-la $t0, $a0			# Load in diagonal array
-lw $t1, $a1			# Load in length of array
+move $t0, $a0			# Load in diagonal array
+move $t1, $a1			# Load in length of array
 
 div $t2, $t1, 2
 mul $t3, $t2, 4		# Index offset
@@ -905,21 +953,21 @@ lw $t6, ($t4)		#array[len/(2-1)]
 add $t7, $t6, $t5
 div $t8, $t7, 2
 
-sw $t8, $a2		# Save median in a2 register
+move $t8, $a2		# Save median in a2 register
 
 # Calculate min and max of tAreas
 li $s2, 0			# Reset value in s2
-la $s2, $a0			# Load in diagonal array
+move $s2, $a0			# Load in diagonal array
 li $t0, 0 			# Index
 lw $t1, ($s2)		# Minimum
 lw $t2, ($s2)		# Maximum
-lw $t3, $a1			# Load in length of array
+move $t3, $a1			# Load in length of array
 
 # Find minimum and maximum of surfaceAreas
 findMinMaxLoop:
 	lw $t4, ($s2)	
 	bge $t4, $t1, notMinimum
-	sw $t1, $a2
+	move $t1, $a2
 	
 notMinimum:
 	ble $t4, $t2, notMaximum
@@ -931,12 +979,12 @@ notMaximum:
 
 	blt $t0, $t3, findMinMaxLoop	#Loop if index is still in range
 
-	sw $t1, $a2		# Save minimum value
-	sw $t2, $a3		# Save max to variable
+	move $t1, $a2		# Save minimum value
+	move $t2, $a3		# Save max to variable
 
 jr $ra
 
-.end diagonalStats
+.end diagonalsStats
 
 #####################################################################
 #  MIPS assembly language procedure, displayStats(), to display
