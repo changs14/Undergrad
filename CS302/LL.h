@@ -3,7 +3,6 @@
    Class: CS 302
    Assignment: 1
    Description:
-
 */
 
 #include <iostream>
@@ -43,7 +42,7 @@ class LL{
         const LL <T>& operator =(const LL<T>&);
 
         //Deconstrucors
-        ~LL();
+        ~LL();  //Done
 
         //Other functions
         void headInsert(const T&);
@@ -72,7 +71,7 @@ LL<T>Iterator::Iterator(Node* ptr){
 
 /* Iterator::operator* () const - Overload the dereference operator. REturn data of node that Iterator object is pointing to*/
 T LL<T>::Iterator::operator*() const{
-
+    return *this;
 }
 
 /* const Iterator::oprator++(int) - post fix ++ opeartor that moves the iterator object one node to the right*/
@@ -107,13 +106,16 @@ LL<T>::LL(){
 }
 
 /* Default constructor for class LL. Deep copy the copy object into the *this object*/
-LL<T>::LL(const LL<T>& copy){
+LL<T>::LL(const LL<T>& copy){   
+    head = nullptr;
+    tail = nullptr;
 
+    *this = copy;
 }
 
 /* Deep copy assignment operator deep copy rhs to *this */
 const LL<T>& LL<T>::operator=(const LL<T>& rhs){
-    //Deallocate *this object
+    //Deallocate *this object (left hand side or lhs)
     //Perform deep copy
     //Check for self assignment
 
@@ -122,7 +124,20 @@ const LL<T>& LL<T>::operator=(const LL<T>& rhs){
 
 /* Destructor for linked list*/
 LL<T>::~LL<T>(){
+    //Deallocate the linked list
+    Node * tempNode = head; //firstNode of the list
+    Node * newNode = tempNode; //Node next to the current head
+    Node * tempNode2 = tails; //last node of the list
 
+    while(tempNode!=nullptr){
+        newNode = tempNode->next;   //Assign new node to the next node in the list
+        delete tempNode; //Delete the current head
+        tempNode = newNode; //the first node becomes the new node
+    }
+
+    //Clear values of head and tail
+    head = nullptr;
+    tail = nullptr;
 }
 
 /* Insert a new node to the front  of the linked list. Node data field must contain the contents in the item parameter.*/
