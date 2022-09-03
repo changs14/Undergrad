@@ -38,7 +38,7 @@ class LL{
         };
 
         //Constructors
-        LL();
+        LL(); //Done
         LL(const LL <T>&);
         const LL <T>& operator =(const LL<T>&);
 
