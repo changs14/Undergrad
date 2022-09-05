@@ -27,8 +27,8 @@ class LL{
                 Iterator (); //Done
                 Iterator(Node *); //Done
                 T operator *() const;
-                const Iterator& operator ++(int);
-                const Iterator& operator --(int);
+                const Iterator& operator ++(int); //Done
+                const Iterator& operator --(int); //Done
                 bool operator ==( const Iterator &) const;
                 bool operator !=( const Iterator &) const;
 
@@ -45,8 +45,8 @@ class LL{
         ~LL();  //Done
 
         //Other functions
-        void headInsert(const T&);
-        void tailInsert(const T&);
+        void headInsert(const T&); //Done
+        void tailInsert(const T&); //Done
         Iterator begin () const;
         Iterator end() const;
         void swapNodes(Iterator&, Iterator &);
@@ -76,12 +76,14 @@ T LL<T>::Iterator::operator*() const{
 
 /* const Iterator::oprator++(int) - post fix ++ opeartor that moves the iterator object one node to the right*/
 const typename LL<T>::Iterator& LL<T>::Iterator::operator++(int){
-
+    next++;
+    return *this;
 }
 
-/* const Iterator::operator--(int) - post fix operator that moves the iterator object on enode to the left*/
+/* const Iterator::operator--(int) - post fix operator that moves the iterator object on node to the left*/
 const typename LL<T>::Iterator& LL<T>::Iterator::operator++(int){
-
+    prev--;
+    return *this;
 }
 
 /* LL<T>::operator==(const ITerator& rhs) - comparison operator comapres *this Iterator and rhs Iterator. check if they point to the same node
@@ -116,6 +118,8 @@ LL<T>::LL(const LL<T>& copy){
 /* Deep copy assignment operator deep copy rhs to *this */
 const LL<T>& LL<T>::operator=(const LL<T>& rhs){
     //Deallocate *this object (left hand side or lhs)
+    ~LL();
+
     //Perform deep copy
     //Check for self assignment
 
@@ -142,12 +146,20 @@ LL<T>::~LL<T>(){
 
 /* Insert a new node to the front  of the linked list. Node data field must contain the contents in the item parameter.*/
 void LL<T>::headInsert(const T& item){
+    Node * newNode = new Node;
+    newNode->item = item;
+    newNode->next = head;
 
+    head = newNode;
 }
 
 /* Insert a new node to the back of the linked list*/
 void LL<T>::tailInsert(const T& item){
+    Node * newNode = new Node;
+    newNode->item = item;
+    newNode->prev = tail;
 
+    tail = newNode;
 }
 
 /* Returns an Iterator bject whose current field contains this->head*/
