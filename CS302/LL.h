@@ -2,10 +2,11 @@
    NSHEID: 2001508920
    Class: CS 302
    Assignment: 1
-   Description:
+   Description: Header file for function file LL.cpp and main program.
 */
 
 #include <iostream>
+#include "LL.cpp"
 
 using namespace std;
 
@@ -112,6 +113,8 @@ LL<T>::LL(const LL<T>& copy){
     head = nullptr;
     tail = nullptr;
 
+    //Deep copy copy object into *this
+
     *this = copy;
 }
 
@@ -162,7 +165,7 @@ void LL<T>::tailInsert(const T& item){
     tail = newNode;
 }
 
-/* Returns an Iterator bject whose current field contains this->head*/
+/* Returns an Iterator object whose current field contains this->head*/
 typename LL<T>::Iterator LL<T>::begin() const{
 
 }
@@ -175,5 +178,60 @@ typename LL<T>::Iterator LL<T>::end() const{
 
 /* Swap the location of node 1 it1.current with location of it2.current.*/  
 void LL<type>::swapNodes(Iterator& it1, Iterator& it2){
+    Node * tempNode = head; //First node of the list
+    Node * left = nullptr; //Leftmost node
+    Node * right = nullptr; //Rightmost node
+
+    //Check if the nodes are the same
+    if(it1 == it2 || head == nullptr){
+        //Same node so no swapping can happen
+        return;
+    }
+
+    //Check if either objects are the head
+    if(it1 == head){
+        left = it1; //it1 = head so left = head
+        right = it2; //it2 is right after the head
+        tempNode = nullptr;
+    }
+    else if(it2 == head){
+        //Check if it2 is the head
+        left = it2; //it2 = head so left = head;
+        right = it1 //it1 is after the head
+        tempNode = nullptr;
+    }
+    else{
+        while(tempNode->next != nullptr)
+        //While the next node is not the end of the list
+        //Check if it1 is found first
+        if(tempNode->next == it1){
+            left = it1; //it1 is the head
+            right = it2; //it2 comes after the head
+            break;  //Swap is done
+        }
+        else if(tempNode=>next == it2){
+            left = it2; //it2 is the head
+            right = it1; //it1 comes after the head
+            break; //Swap is done
+        }
+
+        tempNode = tempNode->next; //Loop condition
+
+    }
+
+    if(tempNode == nullptr){
+        //Swap nodes and update the current head
+        head = right;
+        left->next = right->next;
+        right->next = left;
+    }
+    else{
+        //Swap position of nodes and update the previous left node
+        Node * previous = tempNode;
+        previous->next = right;
+        left->next = right->next;
+        right->next = left;
+    }
+
 
 }
