@@ -30,8 +30,8 @@ class LL{
                 T operator *() const;
                 const Iterator& operator ++(int); //Done
                 const Iterator& operator --(int); //Done
-                bool operator ==( const Iterator &) const;
-                bool operator !=( const Iterator &) const;
+                bool operator ==( const Iterator &) const; //Done
+                bool operator !=( const Iterator &) const; //DOne
 
             private:
                 Node* current;
@@ -39,7 +39,7 @@ class LL{
 
         //Constructors
         LL(); //Done
-        LL(const LL <T>&);
+        LL(const LL <T>&); //Done
         const LL <T>& operator =(const LL<T>&);
 
         //Deconstrucors
@@ -50,7 +50,7 @@ class LL{
         void tailInsert(const T&); //Done
         Iterator begin () const;
         Iterator end() const;
-        void swapNodes(Iterator&, Iterator &);
+        void swapNodes(Iterator&, Iterator &);  //Done?
 
     private:
         Node* head; //Leftmost node
@@ -124,6 +124,7 @@ const LL<T>& LL<T>::operator=(const LL<T>& rhs){
     ~LL();
 
     //Perform deep copy
+    Node * temp = rhs.head;
     //Check for self assignment
 
     return *this;
@@ -167,13 +168,13 @@ void LL<T>::tailInsert(const T& item){
 
 /* Returns an Iterator object whose current field contains this->head*/
 typename LL<T>::Iterator LL<T>::begin() const{
-
+    return this->head*;
 }
 
 
 /* Returns an iterator object who contains this->tail*/
 typename LL<T>::Iterator LL<T>::end() const{
-
+    return this->tail*;
 }
 
 /* Swap the location of node 1 it1.current with location of it2.current.*/  
