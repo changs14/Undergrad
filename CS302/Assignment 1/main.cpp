@@ -6,12 +6,34 @@
                 will be used to manipulate the list. 
 */
  
- #include "LL.h"
- #include <iostream>
+#include "LL.h"
+#include <iostream>
+#include <fstream>
 
 
 int main(){
-    
+  //Variables to get file
+  string line;
+  string filename;
+  ifstream inFile;
 
+  //Get user input for file and open file
+  do{
+    cout<<"Enter a file name: ";
+    cin>>filename;
+    inFile.open(filename.c_str());
+
+    if(!inFile.is_open()){
+      cout<<"File invalid."<<endl;
+    }
+  }while(inFile.fail());
+
+  cout<<endl;
+
+  //Read in contents and store it in the linked list
+
+  //Cocktail sort dat bih
+
+  //End program or something
     return 0;
 }
