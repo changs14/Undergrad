@@ -75,20 +75,22 @@ LL<T>::Iterator::Iterator(Node* ptr){
 /* Iterator::operator* () const - Overload the dereference operator. REturn data of node that Iterator object is pointing to*/
 template <typename T>
 T LL<T>::Iterator::operator*() const{
-    return *this;
+    return current->data;
 }
 
 /* const Iterator::oprator++(int) - post fix ++ opeartor that moves the iterator object one node to the right*/
 template <typename T>
 const typename LL<T>::Iterator& LL<T>::Iterator::operator++(int){
-    next++;
+    Node * tempNode = current->next;
+    current = tempNode;
     return *this;
 }
 
 /* const Iterator::operator--(int) - post fix operator that moves the iterator object on node to the left*/
 template <typename T>
 const typename LL<T>::Iterator& LL<T>::Iterator::operator--(int){
-    prev--;
+    Node * tempNode = current->prev;
+    current = tempNode;   
     return *this;
 }
 
@@ -180,14 +182,14 @@ void LL<T>::tailInsert(const T& item){
 /* Returns an Iterator object whose current field contains this->head*/
 template <typename T>
 typename LL<T>::Iterator LL<T>::begin() const{
-    return this->head*;
+    return this->head;
 }
 
 
 /* Returns an iterator object who contains this->tail*/
 template <typename T>
 typename LL<T>::Iterator LL<T>::end() const{
-    return this->tail*;
+    return this->tail;
 }
 
 /* Swap the location of node 1 it1.current with location of it2.current.*/  
