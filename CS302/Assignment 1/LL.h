@@ -2,7 +2,7 @@
    NSHEID: 2001508920
    Class: CS 302
    Assignment: 1
-   Description: Header file for function file LL.cpp and main program.
+   Description: Header file and implementation of functions for linked list (main.cpp).
 */
 
 #include <iostream>
@@ -122,38 +122,16 @@ LL<T>::LL(const LL<T>& copy){
     tail = nullptr;
 
     //Deep copy copy object into *this
+    *this = copy;
 }
 
 /* Deep copy assignment operator deep copy rhs to *this */
 template <typename T>
 const LL<T>& LL<T>::operator=(const LL<T>& rhs){
-    if(&rhs != this){
-        Node *curr = head;
-        Node *nextNode;
+    Node * temp;
 
-        head = nullptr;
-
-        while(curr != nullptr){
-            nextNode = curr->next;
-            delete curr;
-            curr = nextNode;
-
-        }
-
-        Node * newNode = head;
-
-        curr = rhs.head;
-
-        while(curr != NULL){
-            newNode = new Node;
-            newNode->data = curr->data;
-            newNode->next = nullptr;
-
-            newNode = newNode->next;
-            curr = curr->next;
-        }
-    }
-
+    
+    
     return *this;
 }
 
@@ -180,9 +158,10 @@ template <typename T>
 void LL<T>::headInsert(const T& item){
     Node * newNode = new Node;
 
+    (*newNode).next = head;
+    head->prev = newNode;
+    newNode->prev = nullptr;
     newNode->data = item;
-    newNode->next = head;
-
     head = newNode;
 }
 
@@ -190,10 +169,11 @@ void LL<T>::headInsert(const T& item){
 template <typename T>
 void LL<T>::tailInsert(const T& item){
     Node * newNode = new Node;
-    newNode->data = item;
-    newNode->prev = tail;
 
-    tail->next = newNode;
+    (*newNode).next = tail;
+    tail->prev = newNode;
+    newNode->prev = nullptr;
+    newNode->data = item;
     tail = newNode;
 }
 
