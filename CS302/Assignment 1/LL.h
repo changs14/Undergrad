@@ -81,16 +81,14 @@ T LL<T>::Iterator::operator*() const{
 /* const Iterator::oprator++(int) - post fix ++ opeartor that moves the iterator object one node to the right*/
 template <typename T>
 const typename LL<T>::Iterator& LL<T>::Iterator::operator++(int){
-    Node * tempNode = current->next;
-    current = tempNode;
+    this->current = this->current->next;
     return *this;
 }
 
 /* const Iterator::operator--(int) - post fix operator that moves the iterator object on node to the left*/
 template <typename T>
 const typename LL<T>::Iterator& LL<T>::Iterator::operator--(int){
-    Node * tempNode = current->prev;
-    current = tempNode;   
+    this->current = this->current->prev;  
     return *this;
 }
 
@@ -117,25 +115,44 @@ LL<T>::LL(){
     head = nullptr;
 }
 
-/* Default constructor for class LL. Deep copy the copy object into the *this object*/
+/* Deep copy constructor for class LL. Deep copy the copy object into the *this object*/
 template <typename T>
 LL<T>::LL(const LL<T>& copy){   
     head = nullptr;
     tail = nullptr;
 
     //Deep copy copy object into *this
-
-    *this = copy;
 }
 
 /* Deep copy assignment operator deep copy rhs to *this */
 template <typename T>
 const LL<T>& LL<T>::operator=(const LL<T>& rhs){
-    //Deallocate *this object (left hand side or lhs)
+    if(&rhs != this){
+        Node *curr = head;
+        Node *nextNode;
 
-    //Perform deep copy
-    Node * temp = rhs.head;
-    //Check for self assignment
+        head = nullptr;
+
+        while(curr != nullptr){
+            nextNode = curr->next;
+            delete curr;
+            curr = nextNode;
+
+        }
+
+        Node * newNode = head;
+
+        curr = rhs.head;
+
+        while(curr != NULL){
+            newNode = new Node;
+            newNode->data = curr->data;
+            newNode->next = nullptr;
+
+            newNode = newNode->next;
+            curr = curr->next;
+        }
+    }
 
     return *this;
 }
@@ -144,14 +161,13 @@ const LL<T>& LL<T>::operator=(const LL<T>& rhs){
 template <typename T>
 LL<T>::~LL<T>(){
     //Deallocate the linked list
-    Node * tempNode = head; //firstNode of the list
-    Node * newNode = tempNode; //Node next to the current head
-    Node * tempNode2 = tail; //last node of the list
+    Node * temp = head; //firstNode of the list
+    Node * newNode = temp; //Node next to the current head
 
-    while(tempNode!=nullptr){
-        newNode = tempNode->next;   //Assign new node to the next node in the list
-        delete tempNode; //Delete the current head
-        tempNode = newNode; //the first node becomes the new node
+    while(temp!=nullptr){
+        newNode = temp->next;   //Assign new node to the next node in the list
+        delete temp; //Delete the current head
+        temp = newNode; //the first node becomes the new node
     }
 
     //Clear values of head and tail
@@ -163,6 +179,7 @@ LL<T>::~LL<T>(){
 template <typename T>
 void LL<T>::headInsert(const T& item){
     Node * newNode = new Node;
+
     newNode->data = item;
     newNode->next = head;
 
@@ -176,26 +193,27 @@ void LL<T>::tailInsert(const T& item){
     newNode->data = item;
     newNode->prev = tail;
 
+    tail->next = newNode;
     tail = newNode;
 }
 
 /* Returns an Iterator object whose current field contains this->head*/
 template <typename T>
 typename LL<T>::Iterator LL<T>::begin() const{
-    return this->head;
+    return head->next;
 }
 
 
 /* Returns an iterator object who contains this->tail*/
 template <typename T>
 typename LL<T>::Iterator LL<T>::end() const{
-    return this->tail;
+    return tail;
 }
 
 /* Swap the location of node 1 it1.current with location of it2.current.*/  
 template <typename T>
 void LL<T>::swapNodes(Iterator& it1, Iterator& it2){
-    Node * tempNode = head; //First node of the list
+    Node * temp = head; //First node of the list
     Node * left = nullptr; //Leftmost node
     Node * right = nullptr; //Rightmost node
 
@@ -209,34 +227,34 @@ void LL<T>::swapNodes(Iterator& it1, Iterator& it2){
     if(it1 == head){
         left = it1; //it1 = head so left = head
         right = it2; //it2 is right after the head
-        tempNode = nullptr;
+        temp = nullptr;
     }
     else if(it2 == head){
         //Check if it2 is the head
         left = it2; //it2 = head so left = head;
         right = it1; //it1 is after the head
-        tempNode = nullptr;
+        temp = nullptr;
     }
     else{
-        while(tempNode->next != nullptr)
+        while(temp->next != nullptr)
         //While the next node is not the end of the list
         //Check if it1 is found first
-        if(tempNode->next == it1){
+        if(temp->next == it1){
             left = it1; //it1 is the head
             right = it2; //it2 comes after the head
             break;  //Swap is done
         }
-        else if(tempNode->next == it2){
+        else if(temp->next == it2){
             left = it2; //it2 is the head
             right = it1; //it1 comes after the head
             break; //Swap is done
         }
 
-        tempNode = tempNode->next; //Loop condition
+        temp = temp->next; //Loop condition
 
     }
 
-    if(tempNode == nullptr){
+    if(temp == nullptr){
         //Swap nodes and update the current head
         head = right;
         left->next = right->next;
@@ -244,7 +262,7 @@ void LL<T>::swapNodes(Iterator& it1, Iterator& it2){
     }
     else{
         //Swap position of nodes and update the previous left node
-        Node * previous = tempNode;
+        Node * previous = temp;
         previous->next = right;
         left->next = right->next;
         right->next = left;
