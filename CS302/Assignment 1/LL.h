@@ -25,32 +25,32 @@ class LL{
         class Iterator{
             public:
                 friend class LL;
-                Iterator (); //Done
-                Iterator(Node *); //Done
+                Iterator (); 
+                Iterator(Node *); 
                 T operator *() const;
-                const Iterator& operator ++(int); //Done
-                const Iterator& operator --(int); //Done
-                bool operator ==( const Iterator &) const; //Done
-                bool operator !=( const Iterator &) const; //DOne
+                const Iterator& operator ++(int); 
+                const Iterator& operator --(int); 
+                bool operator ==( const Iterator &) const; 
+                bool operator !=( const Iterator &) const; 
 
             private:
                 Node* current;
         };
 
         //Constructors
-        LL(); //Done
-        LL(const LL <T>&); //Done
+        LL(); 
+        LL(const LL <T>&); 
         const LL <T>& operator =(const LL<T>&);
 
         //Deconstrucors
-        ~LL();  //Done
+        ~LL(); 
 
         //Other functions
-        void headInsert(const T&); //Done
-        void tailInsert(const T&); //Done
+        void headInsert(const T&); 
+        void tailInsert(const T&); 
         Iterator begin () const;
         Iterator end() const;
-        void swapNodes(Iterator&, Iterator &);  //Done?
+        void swapNodes(Iterator&, Iterator &);  
 
     private:
         Node* head; //Leftmost node
@@ -113,6 +113,7 @@ bool LL<T>::Iterator::operator!=(const Iterator& rhs) const{
 template <typename T>
 LL<T>::LL(){
     head = nullptr;
+    tail = nullptr;
 }
 
 /* Deep copy constructor for class LL. Deep copy the copy object into the *this object*/
@@ -128,10 +129,30 @@ LL<T>::LL(const LL<T>& copy){
 /* Deep copy assignment operator deep copy rhs to *this */
 template <typename T>
 const LL<T>& LL<T>::operator=(const LL<T>& rhs){
-    Node * temp = new Node; //Allocate new node
+    Node * temp = rhs.head;
 
-    
-    
+    this->~LL(); //Deallocate this
+
+    //Check for self assignment
+    if(this == &rhs){
+        return *this;
+    }
+    else{
+        head = new Node;
+        head->data = temp->data;
+        head->next = nullptr;
+
+        temp = temp->next;
+
+        while(temp != nullptr){
+            this->next = new Node;
+            this = this->next;
+            this->data = temp->data;
+            this->next = nullptr;
+            temp = temp->next;
+        }
+    }
+
     return *this;
 }
 
