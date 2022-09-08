@@ -63,13 +63,13 @@ class LL{
 /* Iterator - default constructor sets current to null*/
 template <typename T>
 LL<T>::Iterator::Iterator(){
-    current = nullptr;
+    current = nullptr;  //current node is null
 }
 
 /* Iterator(Node* ptr) - constructor that sets current to ptr*/
 template <typename T>
 LL<T>::Iterator::Iterator(Node* ptr){
-    current = ptr;
+    current = ptr;  //Current node is the ptr node
 }
 
 /* Iterator::operator* () const - Overload the dereference operator. REturn data of node that Iterator object is pointing to*/
@@ -128,7 +128,7 @@ LL<T>::LL(const LL<T>& copy){
 /* Deep copy assignment operator deep copy rhs to *this */
 template <typename T>
 const LL<T>& LL<T>::operator=(const LL<T>& rhs){
-    Node * temp;
+    Node * temp = new Node; //Allocate new node
 
     
     
@@ -156,25 +156,35 @@ LL<T>::~LL<T>(){
 /* Insert a new node to the front  of the linked list. Node data field must contain the contents in the item parameter.*/
 template <typename T>
 void LL<T>::headInsert(const T& item){
-    Node * newNode = new Node;
+    Node * newNode = new Node;  //Allocate
 
-    (*newNode).next = head;
-    head->prev = newNode;
-    newNode->prev = nullptr;
-    newNode->data = item;
-    head = newNode;
+    newNode->next = head; //Next node will be the head node
+    newNode->data = item; //Assign new data to node
+    head = newNode; //newNode is now the head
 }
 
 /* Insert a new node to the back of the linked list*/
 template <typename T>
 void LL<T>::tailInsert(const T& item){
-    Node * newNode = new Node;
+    Node * newNode = new Node;  //Allocate new node
+    Node * tempNode = head; //holds the head node
 
-    (*newNode).next = tail;
-    tail->prev = newNode;
-    newNode->prev = nullptr;
-    newNode->data = item;
-    tail = newNode;
+    newNode->next = nullptr;
+    newNode->data = item; //Assign data to new node
+
+    //Check for an empty list
+    if(head == nullptr){
+        head = newNode; //List is empty so assign new node as the head
+    }
+    else{
+        //Go through list until last node
+        while(tempNode->next != nullptr){
+            tempNode = tempNode->next; //Get the next node until the last one is found
+        }
+
+        //Last node is found so assign newNode to the next one
+        tempNode->next = newNode;
+    }
 }
 
 /* Returns an Iterator object whose current field contains this->head*/
@@ -196,6 +206,7 @@ void LL<T>::swapNodes(Iterator& it1, Iterator& it2){
     Node * temp = head; //First node of the list
     Node * left = nullptr; //Leftmost node
     Node * right = nullptr; //Rightmost node
+    Node * previous = temp;
 
     //Check if the nodes are the same
     if(it1 == it2 || head == nullptr){
@@ -242,11 +253,9 @@ void LL<T>::swapNodes(Iterator& it1, Iterator& it2){
     }
     else{
         //Swap position of nodes and update the previous left node
-        Node * previous = temp;
         previous->next = right;
         left->next = right->next;
         right->next = left;
     }
 
 }
-
