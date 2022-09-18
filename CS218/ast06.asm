@@ -65,14 +65,24 @@
 ;%1 Number to convert
 ;%2 Converted number
 
-mov rdx, 0
+mov r9, 0
 mov ecx, 7
 mov eax, %1	;Get the number that will be converted
 
 %%convertLoop:
 	mov edx, 0
-	idiv ecx
+	idiv ecx		;integer/7
 	
+	;Keep track of the remainder
+	
+	cmp edx, 0		;Check if remainder is 0
+	je %%endConversion
+	
+	inc r9
+	jmp %%convertLoop
+	
+%%endConversion:
+	mov dword[%2+r9*4], edx
 	
 
 %endmacro
