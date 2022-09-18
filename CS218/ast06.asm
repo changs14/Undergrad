@@ -1,7 +1,7 @@
 ; *****************************************************************
-;  Name: 
-;  NSHE ID: 
-;  Section: 
+;  Name: Stephaney Chang
+;  NSHE ID: 2001508920
+;  Section: 1002
 ;  Assignment: 6
 ;  Description:	Simple assembly language program to calculate 
 ;		the diameters if a circle for a series of circles.
@@ -36,6 +36,9 @@
 
 ;	STEP #2
 ;	YOUR CODE GOES HERE
+
+;%1 Number to convert
+;%2 Converted number
 
 %endmacro
 
