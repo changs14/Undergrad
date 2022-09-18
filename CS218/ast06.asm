@@ -37,9 +37,6 @@
 ;	STEP #2
 ;	YOUR CODE GOES HERE
 
-;%1 Number to convert
-;%2 Converted number
-
 %endmacro
 
 ; =====================================================================
@@ -65,8 +62,18 @@
 
 %macro	int2aSept	2
 
-;	STEP #5
-;	YOUR CODE GOES HERE
+;%1 Number to convert
+;%2 Converted number
+
+mov rdx, 0
+mov ecx, 7
+mov eax, %1	;Get the number that will be converted
+
+%%convertLoop:
+	mov edx, 0
+	idiv ecx
+	
+	
 
 %endmacro
 
