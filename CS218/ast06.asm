@@ -34,8 +34,19 @@
 
 %macro	aSept2int	2
 
-;	STEP #2
-;	YOUR CODE GOES HERE
+    movzx eax, byte[%1+rsi]
+    mov ebx, 0                  ; Store the integer value
+
+    cmp eax, NULL
+    je %%endIntConvert
+
+    sub eax, 48
+
+%%convertIntLoop:
+
+    
+
+%%endIntConvert:
 
 %endmacro
 
@@ -204,6 +215,8 @@ spaces		db	"   ", NULL
 
 ddTwo		dd	2
 
+temp dd 0
+
 ; =====================================================================
 ;  Uninitialized variables
 
@@ -238,7 +251,29 @@ _start:
 ;	Do not use macro here...
 ;	Read string aSeptLength1, convert to integer, and store in length
 
-;	YOUR CODE GOES HERE
+;theorectically lets say I have 13 (10 in decimal)
+
+mov rsi, 0
+
+convertLoop:
+    mov eax, dword[aSeptLength1+rsi*4]
+
+    cmp eax, NULL
+    je endConvertLoop
+
+    sub eax, '0'    ;Convert to an int value
+    mov dword[temp], eax
+
+    mov ecx, 7
+    mul ecx
+    add eax, dword[temp]
+
+    inc rsi
+    jmp convertLoop
+
+endConvertLoop:
+    mov dword[length], eax
+
 
 
 ; -----
@@ -354,4 +389,3 @@ last:
 	mov	rax, SYS_exit
 	mov	rdi, EXIT_SUCCESS
 	syscall
-
