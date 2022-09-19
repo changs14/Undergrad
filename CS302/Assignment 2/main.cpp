@@ -12,10 +12,13 @@
 
 using namespace std;
 
-vector<string> enterRows(char[10][10], int, int, string);
-void enterColumn(char[10][10], int, int, string);
-bool emptyCrossWord(char [10][10]);
-bool solveCrossword(char [10][10], vector<string>);
+bool checkRow(vector<string>, int, int, string);
+vector<string> enterRow(vector<string>, int, int, string);
+vector<string> enterColumn(vector<string>, int, int, string);
+bool checkColumn(vector<string>, int, int, string);
+void clearRow(vector<string>, int, int);
+void clearColumn(vector<string>, int, int);
+bool solveCrossword(vector<string>, vector<string>, int);
 
 
 int main(){
@@ -64,82 +67,41 @@ int main(){
     inFile.close();
 
     //Call functions
-    solveCrossword(crossword, words);
-    
-    //Print the solved crossword puzzle
+    solveCrossword(crossword, words, 0);
 
-    for(int i=0; i<10;i++){
+    for(int i =0;i<10;i++){
         cout<<crossword[i]<<endl;
     }
-
   return 0;
   
 }
 
- enterRows(char board[10][10], int row, int column, string currWord){
-    //Find a free position of the cross word represented by '-'
-    for(int i=0; i<currWord.length();i++){
-        if(board[row+i][column] == '-' || board[row+i][column] == currWord[i]){
-            board[row+i][column] = currWord[i];
-        }
-        else{
-            board[0][0] = 'x';
-        }
-    }
+
+bool checkRow(vector<string> board, int row, int col, string word){
+
 
 }
 
-void enterColumn(char board[10][10], int row, int column, string currWord){
-    //Find a free position in the columns represented by '-'
-    for(int i=0; i<currWord.length();i++){
-        if(board[row][column+i] == '-' || board[row+i][column] == currWord[i]){
-            board[row][column+i] = currWord[i];
-        }
-        else{
-            board[0][0] = 'x';
-        }
+vector<string> enterRow(vector<string> board, int row, int col, string word){
 
-    }   
 }
 
-bool emptyCrossWord(char board[10][10]){
-    for(int i=0; i<10;i++){
-        for(int j =0; j<10;j++){
-            if(board[i][j] == '-'){
-                return false;
-            }
-        }
-    }
-    return true;
+vector<string> enterColumn(vector<string> board, int row, int col, string word){
+
 }
 
-bool solveCrossword(char board[10][10], vector<string> wordList){
-    //Solve the crossword puzzle using the backtracking algorithm and recursion
+bool checkColumn(vector<string> board, int row, int col, string word){
 
-    string current;
-    bool empty = emptyCrossWord(board);
+}
 
-    if (empty == false){
-        return true;
-    }
+void clearRow(vector<string>, int row, int col){
 
-    for(int k=0; k<4;k++){
-        current = wordList[k];
-        
-        for(int i=0; i<10;i++){
-            //Check the vertical rows
-            for(int j=0;j<current.length();j++){
-                enterRows(board, j, i, current);
-                enterColumn(board, i, j, current);
+}
 
-                if (board[0][0] != 'x'){
-                        solveCrossword(board, wordList);
-                }
+void clearColumn(vector<string> board, int row, int col){
 
-            }
-        }
-            
-    }
-        return false;
-    
+}
+
+bool solveCrossword(vector<string> board, vector<string> wordList, int index){
+
 }
