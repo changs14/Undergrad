@@ -12,13 +12,13 @@
 
 using namespace std;
 
-bool checkRow(vector<string>, int, int, string);
-vector<string> enterRow(vector<string>, int, int, string);
-vector<string> enterColumn(vector<string>, int, int, string);
-bool checkColumn(vector<string>, int, int, string);
-void clearRow(vector<string>, int, int);
-void clearColumn(vector<string>, int, int);
-bool solveCrossword(vector<string>, vector<string>, int);
+bool checkRow(vector<string>&, int, int, string);
+void enterRow(vector<string>&, int, int, string);
+void enterColumn(vector<string>&, int, int, string);
+bool checkColumn(vector<string>&, int, int, string);
+void clearRow(vector<string>&, int, int, string);
+void clearColumn(vector<string>&, int, int, string);
+bool solveCrossword(vector<string>&, vector<string>);
 
 
 int main(){
@@ -29,6 +29,8 @@ int main(){
     string line;
     string filename;
     ifstream inFile;
+
+    bool puzzleSolved = false;
     
     //Get user input file
     do{
@@ -60,48 +62,195 @@ int main(){
     //Get the words
     for(int i = 0; i<4; i++){
         inFile>>line;   //Get current word in the line
-        words.push_back(line); //Add to the words list
+        words.push_back(line);
     }
 
     //Close the file
     inFile.close();
 
     //Call functions
-    solveCrossword(crossword, words, 0);
+    puzzleSolved = solveCrossword(crossword, words);
 
-    for(int i =0;i<10;i++){
-        cout<<crossword[i]<<endl;
-    }
+        for(int i=0;i<10;i++){
+            cout<<crossword[i]<<endl;
+        }
+
   return 0;
   
 }
 
 
-bool checkRow(vector<string> board, int row, int col, string word){
+bool checkRow(vector<string> &board, int row, int col, string word){
+    int a=0;
+    int b=0;
+    if(col-1 >=0){
+        if(board[row][col-1] != '+'){
+            if(board[row][col-1] == word[0]){
+                a = 1;
+                b = 1;
+            }
+            else{
+                return false;
+            }
+        }
+    }
 
+    for(int i = col;i<10 && a<word.length();i++, a++){
+
+        if(board[row][i] == '-'){
+            b+=1;
+        }
+        else if(board[row][i] == word[a]){
+            b+=1;
+        }
+    }
+
+    if(b==word.length()){
+        return true;
+    }
+
+    return false;
 
 }
 
-vector<string> enterRow(vector<string> board, int row, int col, string word){
+void enterRow(vector<string>& board, int row, int col, string word){
 
+    int a = 0;
+    if(row-1>=0){
+        if(board[row][col-1] == word[0]){
+            a = 1;
+            
+        }
+    }
+
+    for(int i = a; i<word.length(); i++){
+        board[row][col] = word[i];
+        col++;
+    }
 }
 
-vector<string> enterColumn(vector<string> board, int row, int col, string word){
+void enterColumn(vector<string> &board, int row, int col, string word){
+    int a = 0;
+    if(row-1>=0){
+        if(board[row-1][col] == word[0]){
+            a = 1;
+        }
+    }
 
+    for(int i = a; i<word.length(); i++){
+        board[row][col] = word[i];
+        row++;
+    }
 }
 
-bool checkColumn(vector<string> board, int row, int col, string word){
+bool checkColumn(vector<string> &board, int row, int col, string word){
+    int a=0;
+    int b=0;
+    if(row-1 >=0){
+        if(board[row-1][col] != '+'){
+            if(board[row-1][col] == word[0]){
+                a = 1;
+                b=1;
+            }
+            else{
+                return false;
+            }
+        }
+    }
 
+    for(int i = row;i<10 && a<word.length();i++, a++){
+
+        if(board[i][col] == '-'){
+            b+=1;
+        }
+        else if(board[i][col] == word[a]){
+            b+=1;
+        }
+        
+    }
+
+    if(b==word.length()){
+        return true;
+    }
+
+    return false;
 }
 
-void clearRow(vector<string>, int row, int col){
+void clearRow(vector<string>& board, int row, int col, string word){
+    int a = 0;
 
+    if(col>=1){
+        if(board[row][col] == word[0]){
+            a = 1;
+        }
+    }
+
+    for(int i=a; i<word.length();i++){
+        board[row][col] = '-'; 
+        col++;
+    }
 }
 
-void clearColumn(vector<string> board, int row, int col){
+void clearColumn(vector<string>& board, int row, int col, string word){
+    int a = 0;
 
+    if(row >= 1){
+        if(board[row][col] == word[0]){
+            a = 1;
+        }
+    }
+
+    for(int i=a; i<word.length();i++){
+        board[row][col] = '-';
+        row++;
+    }
 }
 
-bool solveCrossword(vector<string> board, vector<string> wordList, int index){
+bool solveCrossword(vector<string> &board, vector<string> wordList){
+    int row = 0;
+    int col = 0;
 
+    bool empty = false;
+    string word;
+
+    for(int i = 0; i<10; i++){
+        for(int j=0; j<10; j++){
+            if(board[i][j] == '-'){
+                row = i;
+                col = j;
+                empty = true;
+                break;
+            }
+            if(empty){
+                break;
+            }
+        }
+    }
+
+    if(!empty){
+        return true;
+    }
+
+    for(int i=0; i<wordList.size(); i++){
+        word = wordList[i];
+
+        if(checkRow(board, row, col, word)){
+            enterRow(board, row, col, word);
+            if(solveCrossword(board, wordList)){
+                return true;
+            }
+            clearRow(board, row, col, word);
+        }
+
+        if(checkColumn(board, row, col, word)){
+            enterColumn(board, row, col, word);
+            if(solveCrossword(board, wordList)){
+                return true;
+            }
+
+            clearColumn(board, row, col, word);
+        }
+    }
+
+    return false;
 }
