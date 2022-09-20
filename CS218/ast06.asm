@@ -34,15 +34,16 @@
 
 %macro	aSept2int	2
 
-    movzx eax, byte[%1+rsi]
-    mov ebx, 0                  ; Store the integer value
-
-    cmp eax, NULL
-    je %%endIntConvert
-
-    sub eax, 48
+mov ebx, 7
 
 %%convertIntLoop:
+	movzx eax, byte[%1+rsi]		;Get char to convert
+	cmp eax, NULL
+	je %%endIntConvert
+	sub eax, 48					;Convert string to int value
+	mov dword[temp], eax		;Store int value
+	imul ebx					;eax * 7
+	add eax, dword[temp]		;(eax*7) + eax
 
     
 
@@ -78,24 +79,24 @@
 
 mov r9, 0
 mov ecx, 7
-mov eax, %1	;Get the number that will be converted
+mov eax, %1					;	Get the number that will be converted
 
 %%convertLoop:
 	mov edx, 0
-	idiv ecx		;integer/7
+	idiv ecx					;integer/7
 	
-	;Keep track of the remainder
-	
-	cmp edx, 0		;Check if remainder is 0
-	je %%endConversion
-	
+	cmp eax, 0					;Check if number can no longer be / 7
+	je %%endConversion	
+
+	add edx, "0"				;Convert integer(remainder) to a char
+	mov dword[%2+r9*4], edx		;Store the char into sept string
+
 	inc r9
 	jmp %%convertLoop
 	
 %%endConversion:
-	mov dword[%2+r9*4], edx
+	mov dword[%2+r9*4], NULL
 	
-
 %endmacro
 
 ; =====================================================================
@@ -251,28 +252,9 @@ _start:
 ;	Do not use macro here...
 ;	Read string aSeptLength1, convert to integer, and store in length
 
-;theorectically lets say I have 13 (10 in decimal)
+;Convert a string in sept format to an integer value
 
-mov rsi, 0
 
-convertLoop:
-    mov eax, dword[aSeptLength1+rsi*4]
-
-    cmp eax, NULL
-    je endConvertLoop
-
-    sub eax, '0'    ;Convert to an int value
-    mov dword[temp], eax
-
-    mov ecx, 7
-    mul ecx
-    add eax, dword[temp]
-
-    inc rsi
-    jmp convertLoop
-
-endConvertLoop:
-    mov dword[length], eax
 
 
 
@@ -283,6 +265,8 @@ endConvertLoop:
 	mov	ecx, dword [length]
 	mov	rdi, 0					; index for radii
 	mov	rbx, septRadii
+
+
 cvtLoop:
 	push	rbx					; safety push's
 	push	rcx
@@ -392,10 +376,6 @@ notMaximum:
 	inc rsi								;i++
 	loop maximumLoop
 
-
-
-
-
 ; -----
 ;  STEP #4
 ;	Convert sum to ASCII/septenary for printing.
@@ -406,8 +386,22 @@ notMaximum:
 ;	Read diamsArray sum inetger (set above), convert to
 ;		ASCII/septenary and store in diamSumString.
 
-;	YOUR CODE GOES HERE
+mov rsi, 0
+mov ecx, 7
+mov eax, dword[diamSum]
 
+convertSum:
+	mov edx, 0
+	idiv ecx
+	cmp eax, 0
+	je endConvertSum
+	add edx, "0"
+	mov dword[diamSumString+rsi*4], edx
+	inc rsi
+	jmp convertSum
+
+endConvertSum:
+	mov dword[diamSumString+rsi*4], NULL
 
 
 
