@@ -58,15 +58,15 @@ mov eax, 0
 	imul edx					;eax * 7
 
 	inc rsi
-	loop convertIntLoop
+	jmp %%convertIntLoop
 
 %%continue:
 	inc rsi
-	loop convertLoop
+	loop %%convertIntLoop
 
 %%isSpace:
 	inc rsi
-	loop convertIntLoop
+	loop %%convertIntLoop
     
 %%endIntConvert:
 	mov dword[%2], eax
@@ -76,16 +76,19 @@ mov ebx, 0
 mov eax, 0
 
 %%findSign:
-	movsx ebx, dword[%1+rsi]
+	movsx ebx, byte[%1+rsi]
 
 	cmp ebx, NULL
-	%%convertEnd
+	je %%convertEnd
 
 	cmp ebx, '-'
-	%%isNegative
+	je %%isNegative
 
-	cmp ebx '+'
-	%%isPositive
+	cmp ebx, '+'
+	je %%isPositive
+	
+	inc rsi
+	loop %%findSign
 
 %%isNegative:
 	mov dword[temp], ebx
@@ -135,7 +138,7 @@ mov r9, 0
 mov ecx, 7
 mov eax, %1					;	Get the number that will be converted
 
-%%convertLoop:
+%%convertToStringLoop:
 	mov edx, 0
 	idiv ecx					;integer/7
 	
@@ -146,7 +149,7 @@ mov eax, %1					;	Get the number that will be converted
 	mov dword[%2+r9*4], edx		;Store the char into sept string
 
 	inc r9
-	jmp %%convertLoop
+	jmp %%convertToStringLoop
 	
 %%endConversion:
 	mov dword[%2+r9*4], NULL
@@ -312,7 +315,7 @@ mov edx, 7
 mov eax, 0
 
 convertToInt:
-	movsx ebx, byte[aSeptLength1+rsi]		;Get char to convert
+	movsx ebx, byte[aSeptLength+rsi]		;Get char to convert
 
 	cmp ebx, NULL
 	je endConvertToInt
@@ -323,7 +326,7 @@ convertToInt:
 	imul edx					;eax * 7
 
 	inc rsi
-	loop convertIntLoop
+	loop convertToInt
     
 endConvertToInt:
 	mov dword[length], eax
@@ -427,11 +430,11 @@ minimumLoop:
 	jle notMinimum						;Curr num is not smaller than min
 	mov dword[diamMin], eax				;Current number is new min
 	inc rsi								;i++
-	loop minLoop
+	loop minimumLoop
 
 notMinimum:
 	inc rsi								;i++
-	loop minLoop
+	loop minimumLoop
 
 ;Reset counters
 mov ecx, dword[length]
