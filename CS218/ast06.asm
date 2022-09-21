@@ -57,6 +57,7 @@ mov ecx, 7
 	mov dword[temp], r8d		;Store int value
 	imul ecx				;eax * 7
 	add eax, dword[temp]		;(eax*7) + eax
+	mov dword[%2], eax
 
 	inc rsi
 	jmp %%convertIntLoop
@@ -66,39 +67,39 @@ mov ecx, 7
 	jmp %%convertIntLoop
     
 %%endIntConvert:
-	mov dword[%2], eax
 
 mov rsi, 0
 mov r8d, 0
 
+;Check the sign of the value
 %%findSign:
-	movsx r8d, byte[%1+rsi]
+	movsx r8d, byte[%1+rsi]		;Get the number
 
-	cmp r8d, NULL
+	cmp r8d, NULL			;Check if end of the list
 	je %%convertEnd
 
-	cmp r8d, '-'
+	cmp r8d, '-'			;Check if negative
 	je %%isNegative
 
-	cmp r8d, '+'
+	cmp r8d, '+'			;Check if positive
 	je %%isPositive
 	
 	inc rsi
 	jmp %%findSign
 
 %%isNegative:
-	mov dword[temp], r8d
-	mov eax, dword[temp]
-	mov ecx, -1
+	mov eax, dword[%2]		;Get converted number
+	mov ecx, -1			
 	mov edx, 0
-	idiv ecx
+	idiv ecx			;%2 / -1
 	jmp %%convertEnd
 
 %%isPositive:
+	;Already positive, no need to change
 	jmp %%convertEnd
 
 %%convertEnd:
-	mov dword[%2], eax
+	mov dword[%2], eax		;Store new value
 
 
 %endmacro
@@ -131,23 +132,50 @@ mov r8d, 0
 
 mov r9, 0
 mov ecx, 7
-mov eax, %1					;	Get the number that will be converted
+mov eax, %1			;Get the number that will be converted
+mov ebx, %1
 
 %%convertToStringLoop:
 	mov edx, 0
-	idiv ecx					;integer/7
+	idiv ecx		;eax/7
 	
-	cmp eax, 0					;Check if number can no longer be / 7
-	je %%endConversion	
+	cmp eax, 0		;Check if number can no longer be / 7
+	je %%checkSign	
 
-	add edx, "0"				;Convert integer(remainder) to a char
-	mov dword[%2+r9*4], edx		;Store the char into sept string
+	add edx, "0"
+	mov byte[%2+r9], dl
 
 	inc r9
 	jmp %%convertToStringLoop
 	
+%%checkSign:
+	add edx, "0"
+	mov byte[%2+r9], dl
+	inc r9
+	
+	cmp ebx, 0
+	jb %%negative
+	
+	mov byte[%2+r9], '+'
+	inc r9
+	jmp %%addSpace
+	
+%%negative:
+	mov byte[%2+r9], '-'
+	inc r9
+	jmp %%addSpace
+	
+%%addSpace:
+	mov byte[%2+r9], 0x20
+	
+	cmp r9, 12
+	je %%endConversion
+	
+	inc r9
+	jmp %%addSpace
+
 %%endConversion:
-	mov dword[%2+r9*4], NULL
+	mov byte[%2+r9], NULL
 	
 %endmacro
 
@@ -311,7 +339,7 @@ mov eax, 0
 mov rsi, 0
 
 convertToInt:
-	movzx ebx, byte[aSeptLength+rsi]		;Get char to convert
+	movsx ebx, byte[aSeptLength+rsi]		;Get char to convert
 
 	cmp ebx, NULL
 	je endConvertToInt
@@ -326,9 +354,10 @@ convertToInt:
 	je continueLoop
 
 	sub ebx, 0x30				;Convert string to int value
-	mov dword[temp], ebx		;Store int value
-	add eax, dword[temp]		;(eax*7) + eax
-	mul ecx					;eax * 7
+	mov dword[temp], ebx			;Store int value
+	imul ecx					;eax * 7
+	add eax, dword[temp]			;(eax*7) + eax
+	mov dword[length], eax
 
 	inc rsi
 	jmp convertToInt
@@ -338,7 +367,6 @@ continueLoop:
 	jmp convertToInt
     
 endConvertToInt:
-	mov dword[length], eax
 
 
 
@@ -452,7 +480,7 @@ mov rsi, 0
 maximumLoop:
 	mov eax, dword[diamsArray+rsi*4]	;Get diameter
 	cmp dword[diamMax], eax				;compared max to current num
-	jle notMaximum						;current num is not greater than max
+	jge notMaximum						;current num is not greater than max
 	mov dword[diamMax], eax				;Current number is new max
 	inc rsi								;i++
 	loop maximumLoop
