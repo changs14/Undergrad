@@ -34,72 +34,67 @@
 
 %macro	aSept2int	2
 
-mov edx, 7
 mov eax, 0
+mov rsi, 0
+mov ecx, 7
 
 %%convertIntLoop:
-	movsx ebx, byte[%1+rsi]		;Get char to convert
+	movsx r8d, byte[%1+rsi]		;Get char to convert
 
-	cmp ebx, NULL
+	cmp r8d, NULL			;Check if at the end of the string
 	je %%endIntConvert
 
-	cmp ebx, ' '
-	je %%isSpace
-
-	cmp ebx, '-'
+	cmp r8d, 0x20			;Check if there is a space
 	je %%continue
 
-	cmp ebx, '+'
+	cmp r8d, '-'			;Ignore sign to check later
 	je %%continue
 
-	sub ebx, '0'				;Convert string to int value
-	mov dword[temp], ebx		;Store int value
+	cmp r8d, '+'			;Ignore sign to check later
+	je %%continue
+
+	sub r8d, 0x30			;Convert string to int value
+	mov dword[temp], r8d		;Store int value
+	imul ecx				;eax * 7
 	add eax, dword[temp]		;(eax*7) + eax
-	imul edx					;eax * 7
 
 	inc rsi
 	jmp %%convertIntLoop
 
 %%continue:
 	inc rsi
-	loop %%convertIntLoop
-
-%%isSpace:
-	inc rsi
-	loop %%convertIntLoop
+	jmp %%convertIntLoop
     
 %%endIntConvert:
 	mov dword[%2], eax
 
 mov rsi, 0
-mov ebx, 0
-mov eax, 0
+mov r8d, 0
 
 %%findSign:
-	movsx ebx, byte[%1+rsi]
+	movsx r8d, byte[%1+rsi]
 
-	cmp ebx, NULL
+	cmp r8d, NULL
 	je %%convertEnd
 
-	cmp ebx, '-'
+	cmp r8d, '-'
 	je %%isNegative
 
-	cmp ebx, '+'
+	cmp r8d, '+'
 	je %%isPositive
 	
 	inc rsi
-	loop %%findSign
+	jmp %%findSign
 
 %%isNegative:
-	mov dword[temp], ebx
+	mov dword[temp], r8d
 	mov eax, dword[temp]
 	mov ecx, -1
+	mov edx, 0
 	idiv ecx
 	jmp %%convertEnd
 
 %%isPositive:
-	mov dword[temp], ebx
-	mov eax, dword[temp]
 	jmp %%convertEnd
 
 %%convertEnd:
@@ -256,6 +251,8 @@ diamAve		dd	0
 diamMin		dd	0
 diamMax		dd	0
 
+temp dd 0
+
 ; -----
 ;  Misc. variables for main.
 
@@ -272,8 +269,6 @@ newLine		db	LF, NULL
 spaces		db	"   ", NULL
 
 ddTwo		dd	2
-
-temp dd 0
 
 ; =====================================================================
 ;  Uninitialized variables
@@ -311,22 +306,36 @@ _start:
 
 ;Convert a string in sept format to an integer value
 
-mov edx, 7
+mov ecx, 7
 mov eax, 0
+mov rsi, 0
 
 convertToInt:
-	movsx ebx, byte[aSeptLength+rsi]		;Get char to convert
+	movzx ebx, byte[aSeptLength+rsi]		;Get char to convert
 
 	cmp ebx, NULL
 	je endConvertToInt
+	
+	cmp ebx, ' '
+	je continueLoop
+	
+	cmp ebx, '-'
+	je continueLoop
+	
+	cmp ebx, '+'
+	je continueLoop
 
-	sub ebx, '0'				;Convert string to int value
+	sub ebx, 0x30				;Convert string to int value
 	mov dword[temp], ebx		;Store int value
 	add eax, dword[temp]		;(eax*7) + eax
-	imul edx					;eax * 7
+	mul ecx					;eax * 7
 
 	inc rsi
-	loop convertToInt
+	jmp convertToInt
+	
+continueLoop:
+	inc rsi
+	jmp convertToInt
     
 endConvertToInt:
 	mov dword[length], eax
