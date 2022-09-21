@@ -179,8 +179,8 @@ bool checkColumn(vector<string> &board, int row, int col, string word){
 void clearRow(vector<string>& board, int row, int col, string word){
     int a = 0;
 
-    if(col>=1){
-        if(board[row][col] == word[0]){
+    if(col-1>=0){
+        if(board[row][col-1] == word[0]){
             a = 1;
         }
     }
@@ -194,8 +194,8 @@ void clearRow(vector<string>& board, int row, int col, string word){
 void clearColumn(vector<string>& board, int row, int col, string word){
     int a = 0;
 
-    if(row >= 1){
-        if(board[row][col] == word[0]){
+    if(row-1>=0){
+        if(board[row-1][col] == word[0]){
             a = 1;
         }
     }
@@ -207,8 +207,8 @@ void clearColumn(vector<string>& board, int row, int col, string word){
 }
 
 bool solveCrossword(vector<string> &board, vector<string> wordList){
-    int row = 0;
-    int col = 0;
+    int row = -1;
+    int col = -1;
 
     bool empty = false;
     string word;
