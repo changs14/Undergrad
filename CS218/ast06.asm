@@ -34,20 +34,74 @@
 
 %macro	aSept2int	2
 
-mov ebx, 7
+mov edx, 7
+mov eax, 0
 
 %%convertIntLoop:
-	movzx eax, byte[%1+rsi]		;Get char to convert
-	cmp eax, NULL
+	movsx ebx, byte[%1+rsi]		;Get char to convert
+
+	cmp ebx, NULL
 	je %%endIntConvert
-	sub eax, 48					;Convert string to int value
-	mov dword[temp], eax		;Store int value
-	imul ebx					;eax * 7
+
+	cmp ebx, ' '
+	je %%isSpace
+
+	cmp ebx, '-'
+	je %%continue
+
+	cmp ebx, '+'
+	je %%continue
+
+	sub ebx, '0'				;Convert string to int value
+	mov dword[temp], ebx		;Store int value
 	add eax, dword[temp]		;(eax*7) + eax
+	imul edx					;eax * 7
 
+	inc rsi
+	loop convertIntLoop
+
+%%continue:
+	inc rsi
+	loop convertLoop
+
+%%isSpace:
+	inc rsi
+	loop convertIntLoop
     
-
 %%endIntConvert:
+	mov dword[%2], eax
+
+mov rsi, 0
+mov ebx, 0
+mov eax, 0
+
+%%findSign:
+	movsx ebx, dword[%1+rsi]
+
+	cmp ebx, NULL
+	%%convertEnd
+
+	cmp ebx, '-'
+	%%isNegative
+
+	cmp ebx '+'
+	%%isPositive
+
+%%isNegative:
+	mov dword[temp], ebx
+	mov eax, dword[temp]
+	mov ecx, -1
+	idiv ecx
+	jmp %%convertEnd
+
+%%isPositive:
+	mov dword[temp], ebx
+	mov eax, dword[temp]
+	jmp %%convertEnd
+
+%%convertEnd:
+	mov dword[%2], eax
+
 
 %endmacro
 
@@ -254,6 +308,25 @@ _start:
 
 ;Convert a string in sept format to an integer value
 
+mov edx, 7
+mov eax, 0
+
+convertToInt:
+	movsx ebx, byte[aSeptLength1+rsi]		;Get char to convert
+
+	cmp ebx, NULL
+	je endConvertToInt
+
+	sub ebx, '0'				;Convert string to int value
+	mov dword[temp], ebx		;Store int value
+	add eax, dword[temp]		;(eax*7) + eax
+	imul edx					;eax * 7
+
+	inc rsi
+	loop convertIntLoop
+    
+endConvertToInt:
+	mov dword[length], eax
 
 
 
