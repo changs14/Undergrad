@@ -131,12 +131,23 @@ mov r8d, 0
 ;%2 Converted number
 
 mov r9, 0
-mov ecx, 7
 mov eax, %1			;Get the number that will be converted
 mov ebx, %1
 
+cmp eax, 0
+jl %%isNegative
+
+jmp %%convertToStringLoop
+
+%%isNegative:
+	cdq
+	mov ecx, -1
+	idiv ecx
+	jmp %%convertToStringLoop
+
 %%convertToStringLoop:
-	mov edx, 0
+	cdq
+	mov ecx, 7
 	idiv ecx		;eax/7
 	
 	cmp eax, 0		;Check if number can no longer be / 7
@@ -154,7 +165,7 @@ mov ebx, %1
 	inc r9
 	
 	cmp ebx, 0
-	jb %%negative
+	jl %%negative
 	
 	mov byte[%2+r9], '+'
 	inc r9
@@ -175,7 +186,27 @@ mov ebx, %1
 	jmp %%addSpace
 
 %%endConversion:
-	mov byte[%2+r9], NULL
+
+mov r8, 0
+mov r9, 0
+mov r10, 11
+
+%%reverseLoop:
+	mov al, byte[%2+r8]
+	mov bl, byte[%2+r10]
+	
+	mov byte[%2+r8], bl
+	mov byte[%2+r10], al
+	
+	cmp r9, 5
+	je %%endReverse
+	inc r8
+	inc r9
+	dec r10
+	jmp %%reverseLoop
+
+%%endReverse:
+	mov byte[%2+12], NULL
 	
 %endmacro
 
@@ -369,8 +400,6 @@ continueLoop:
 endConvertToInt:
 
 
-
-
 ; -----
 ;  Convert radii from ASCII/septenary format to integer.
 ;  STEP #2 must complete before this code.
@@ -378,7 +407,6 @@ endConvertToInt:
 	mov	ecx, dword [length]
 	mov	rdi, 0					; index for radii
 	mov	rbx, septRadii
-
 
 cvtLoop:
 	push	rbx					; safety push's
@@ -462,15 +490,15 @@ mov ecx, dword[length]
 mov rsi, 0
 
 minimumLoop:
-	mov eax, dword[diamsArray+rsi*4]	;Get diameter
-	cmp dword[diamMin], eax				;Compare current min to array item
-	jle notMinimum						;Curr num is not smaller than min
-	mov dword[diamMin], eax				;Current number is new min
-	inc rsi								;i++
+	mov eax, dword[diamsArray+rsi*4] ;Get diameter
+	cmp dword[diamMin], eax		 ;Compare current min to array item
+	jle notMinimum			 ;Curr num is not smaller than min
+	mov dword[diamMin], eax		 ;Current number is new min
+	inc rsi				 ;i++
 	loop minimumLoop
 
 notMinimum:
-	inc rsi								;i++
+	inc rsi				 ;i++
 	loop minimumLoop
 
 ;Reset counters
@@ -478,15 +506,15 @@ mov ecx, dword[length]
 mov rsi, 0
 
 maximumLoop:
-	mov eax, dword[diamsArray+rsi*4]	;Get diameter
-	cmp dword[diamMax], eax				;compared max to current num
-	jge notMaximum						;current num is not greater than max
-	mov dword[diamMax], eax				;Current number is new max
-	inc rsi								;i++
+	mov eax, dword[diamsArray+rsi*4] ;Get diameter
+	cmp dword[diamMax], eax		;compared max to current num
+	jge notMaximum			;current num is not greater than max
+	mov dword[diamMax], eax		;Current number is new max
+	inc rsi				;i++
 	loop maximumLoop
 
 notMaximum:
-	inc rsi								;i++
+	inc rsi				;i++
 	loop maximumLoop
 
 ; -----
