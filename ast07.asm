@@ -51,8 +51,86 @@
 %macro	int2aSept	2
 
 
-;	YOUR CODE GOES HERE
+;%1 Number to convert
+;%2 Converted number
 
+mov r9, 1
+mov eax, %1			;Get the number that will be converted
+mov ebx, %1
+
+cmp eax, 0
+jl %%isNegative
+
+jmp %%convertToStringLoop
+
+%%isNegative:
+	cdq
+	mov ecx, -1
+	idiv ecx
+	jmp %%convertToStringLoop
+
+%%convertToStringLoop:
+	cdq
+	mov ecx, 7
+	idiv ecx		;eax/7
+	
+	cmp eax, 0		;Check if number can no longer be / 7
+	je %%checkSign	
+
+	add edx, "0"
+	mov byte[%2+r9], dl
+
+	inc r9
+	jmp %%convertToStringLoop
+	
+%%checkSign:
+	add edx, "0"
+	mov byte[%2+r9], dl
+	inc r9
+	
+	cmp ebx, 0
+	jl %%negative
+	
+	mov byte[%2+r9], '+'
+	inc r9
+	jmp %%addSpace
+	
+%%negative:
+	mov byte[%2+r9], '-'
+	inc r9
+	jmp %%addSpace
+	
+%%addSpace:
+	mov byte[%2+r9], 0x20
+	
+	cmp r9, 12
+	je %%endConversion
+	
+	inc r9
+	jmp %%addSpace
+
+%%endConversion:
+
+mov r8, 0
+mov r9, 0
+mov r10, 11
+
+%%reverseLoop:
+	mov al, byte[%2+r8]
+	mov bl, byte[%2+r10]
+	
+	mov byte[%2+r8], bl
+	mov byte[%2+r10], al
+	
+	cmp r9, 5
+	je %%endReverse
+	inc r8
+	inc r9
+	dec r10
+	jmp %%reverseLoop
+
+%%endReverse:
+	mov byte[%2+11], NULL
 
 
 %endmacro
@@ -209,8 +287,71 @@ _start:
 
 ;	YOUR CODE GOES HERE
 
+mov dword[h], 1		;h = 1
+mov ecx, dword[len]	;length 
+
+gapLoop:
 
 
+
+
+;Calculate the sum
+mov ecx, dword[len]
+mov rsi, 0
+
+calculateSumLoop:
+	mov eax, dword[lst+rsi*4]	;Get diameter in the list
+	add dword[sum], eax		;Add to the sum
+	inc rsi				;i++
+	loop calculateSumLoop		;loop back
+
+
+endCalculateSumLoop:
+	;Sum has been calculated
+
+;Calculate the average
+mov eax, dword[sum]			;Get the sum
+mov edx, 0
+idiv dword[len]				;sum/length
+mov dword[avg], eax			;Store average in var
+
+;Reset counters
+mov ecx, dword[len]
+mov rsi, 0
+
+minimumLoop:
+	mov eax, dword[lst+rsi*4] ;Get diameter
+	cmp dword[min], eax		 ;Compare current min to array item
+	jle notMinimum			 ;Curr num is not smaller than min
+	mov dword[min], eax		 ;Current number is new min
+	inc rsi				 ;i++
+	loop minimumLoop
+
+notMinimum:
+	inc rsi				 ;i++
+	loop minimumLoop
+	
+movsxd rcx, dword[len]			;Get the length of the list
+mov rsi, 0				;Reset counter
+
+maxLoop:
+	mov eax, dword[lst+rsi*4]	;Get item in list
+	cmp dword[max], eax		;Check if item is larger than max
+	jge notMax			;Current number is not larger
+	mov dword[max], eax		;Current item is new max
+	cmp rsi, rcx			;Check if end of list
+	je endLoop			;End of list
+	inc rsi				;i++
+	jmp maxLoop
+	
+notMax:
+	cmp rsi, rcx			;Check if end of list
+	je endLoop			;End of list
+	inc rsi				;i++
+	jmp maxLoop
+
+endLoop:
+	;Max has been found
 
 ; ******************************
 ;  Display results to screen in septenary.
@@ -250,4 +391,3 @@ last:
 	mov	rax, SYS_exit
 	mov	rdi, EXIT_SUCCESS
 	syscall
-
