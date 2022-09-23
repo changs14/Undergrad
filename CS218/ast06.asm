@@ -130,7 +130,7 @@ mov r8d, 0
 ;%1 Number to convert
 ;%2 Converted number
 
-mov r9, 0
+mov r9, 1
 mov eax, %1			;Get the number that will be converted
 mov ebx, %1
 
@@ -206,7 +206,7 @@ mov r10, 11
 	jmp %%reverseLoop
 
 %%endReverse:
-	mov byte[%2+12], NULL
+	mov byte[%2+11], NULL
 	
 %endmacro
 
@@ -501,21 +501,26 @@ notMinimum:
 	inc rsi				 ;i++
 	loop minimumLoop
 
-;Reset counters
-mov ecx, dword[length]
+movsxd rcx, dword[length]
 mov rsi, 0
 
-maximumLoop:
-	mov eax, dword[diamsArray+rsi*4] ;Get diameter
-	cmp dword[diamMax], eax		;compared max to current num
-	jge notMaximum			;current num is not greater than max
-	mov dword[diamMax], eax		;Current number is new max
-	inc rsi				;i++
-	loop maximumLoop
+maxLoop:
+	mov eax, dword[diamsArray+rsi*4]
+	cmp dword[diamMax], eax
+	jge notMax
+	mov dword[diamMax], eax
+	cmp rsi, rcx
+	je endLoop
+	inc rsi
+	jmp maxLoop
+	
+notMax:
+	cmp rsi, rcx
+	je endLoop
+	inc rsi
+	jmp maxLoop
 
-notMaximum:
-	inc rsi				;i++
-	loop maximumLoop
+endLoop:
 
 ; -----
 ;  STEP #4
@@ -526,26 +531,66 @@ notMaximum:
 
 ;	Read diamsArray sum inetger (set above), convert to
 ;		ASCII/septenary and store in diamSumString.
+;int to sept?
 
-mov rsi, 0
+
+mov rsi, 1
 mov ecx, 7
 mov eax, dword[diamSum]
 
-convertSum:
+convertSumString:
 	mov edx, 0
-	idiv ecx
-	cmp eax, 0
-	je endConvertSum
+	mov ecx, 7
+	idiv ecx		;eax/7
+	
+	cmp eax, 0		;Check if number can no longer be / 7
+	je addSign	
+
 	add edx, "0"
-	mov dword[diamSumString+rsi*4], edx
+	mov byte[diamSumString+rsi], dl
+
 	inc rsi
-	jmp convertSum
+	jmp convertSumString
+	
+addSign:
+	add edx, "0"
+	mov byte[diamSumString+rsi], dl
+	inc rsi
+	
+	mov byte[diamSumString+rsi], '+'
+	inc rsi
+	jmp insertSpace
+	
+insertSpace:
+	add byte[diamSumString+rsi], 0x20
+	cmp rsi, 12
+	je endStringConversion
+	
+	inc rsi
+	jmp insertSpace
 
-endConvertSum:
-	mov dword[diamSumString+rsi*4], NULL
+endStringConversion:
 
+mov r8, 0
+mov r9, 0
+mov r10, 11
 
+reverseString:
+	mov al, byte[diamSumString+r8]
+	mov bl, byte[diamSumString+r10]
+	
+	mov byte[diamSumString+r8], bl
+	mov byte[diamSumString+r10], al
+	
+	cmp r9, 5
+	je endReversal
+	inc r8
+	inc r9
+	dec r10
+	jmp reverseString
 
+endReversal:
+	mov byte[diamSumString+12], NULL
 ;	print the diamSumString (set above).
 	printString	diamSumString
 
