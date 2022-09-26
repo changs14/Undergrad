@@ -285,13 +285,102 @@ _start:
 ;  Find median.
 
 
-;	YOUR CODE GOES HERE
+;SHELL SORT
+
+;len = 200
+;tmp - temp variable
 
 mov dword[h], 1		;h = 1
 mov ecx, dword[len]	;length 
 
-gapLoop:
+;while(h*3+1) < length
+hLoop:
+	;h*3+1
+	mov eax, dword[h]
+	mov ebx, 3
+	mul ebx
+	add eax, 1
+	
+	mov dword[h], eax
+	
+	cmp dword[h], 200	;Compare if h*3+1 < length
+	jg endHLoop		;endHLoop if it is bigger
+	
+endHLoop:
 
+;Clear registers
+mov eax, 0
+mov ebx, 0
+
+whileLoop:
+	;while h>0
+	cmp dword[h], 0
+	jle endSort
+	
+	jmp firstForLoop
+	
+firstForLoop:
+	;for (i=h-1; i<length; i++)
+	;eax = h-1
+	mov eax, dword[h]
+	sub eax, 1
+	mov dword[i], eax	;i = h-1
+	
+	;tmp = lst[i]
+	mov ebx, dword[lst+rax*4]
+	mov dword[tmp], ebx
+	
+	;j = i
+	mov dword[j], eax
+	
+	cmp dword[i], 200
+	jge endWhileLoop
+	
+	secondForLoop:
+		mov ecx, dword[h]
+		cmp dword[j], ecx
+		jge checkSecondCondition
+		
+		jmp endFirstForLoop
+		
+	checkSecondCondition:
+		mov eax, dword[j]
+		sub eax, dword[h]
+		
+		mov edx, dword[tmp]
+		
+		;lst[j-h] > tmp
+		cmp dword[lst+rax*4], edx
+		jge continueSecondLoop
+		
+		jmp endFirstForLoop
+	
+	continueSecondLoop:
+		;note eax = j-h
+		mov r8d, dword[j]
+		
+		;lst[j]
+		mov r9d, dword[lst+rax*4]
+		mov dword[lst+r8*4], r8d
+		
+		jmp endFirstForLoop
+	
+endFirstForLoop:
+	;lst[j] = tmp
+	mov r9d, dword[tmp]
+	mov dword[lst+r8d*4], r9d
+	
+endWhileLoop:
+	mov edx, 0
+	mov ecx, 3
+	mov eax, dword[h]
+	div ecx
+	mov dword[h], eax
+	
+	jmp whileLoop
+	
+endSort:
+	
 
 
 
@@ -391,3 +480,4 @@ last:
 	mov	rax, SYS_exit
 	mov	rdi, EXIT_SUCCESS
 	syscall
+
