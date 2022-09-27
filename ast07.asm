@@ -312,94 +312,73 @@ endHLoop:
 mov eax, 0
 mov ebx, 0
 
-mov eax, dword[h]
-sub eax, 1
-mov dword[i], eax
+;Shell sort
 
-;Clear register again
-mov eax, 0
+;h already established
 
-;Beginning of while loop
 whileLoop:
-	jmp firstForLoop
+	;while h>0
+	mov eax, dword[h]
+	cmp dword[h], 0
+	ja firstForLoop			;h is above 0
+	jmp endSort			;h is below 0
 	
 firstForLoop:
-	;tmp = lst[i]
-	mov eax, dword[i]
-	mov ebx, dword[lst+rax*4]
-	mov dword[tmp], ebx
+	;for(i=h, i<length, i++)
+	sub eax, 1			;h-1
+	mov dword[i], eax		;i=h
 	
-	;j = i
-	mov dword[j], eax
+	cmp dword[i], 200		;i<length
+	jb continueFirstForLoop
+	jmp continueWhileLoop		;Jump to the end of the while loop
+	
+continueFirstForLoop:
+	mov eax, dword[i]
+	mov r8d, dword[lst+rax*4]	;get lst[i]
+	mov dword[tmp], r8d		;tmp = lst[i]
+	mov dword[j], eax		;j=i
+	
 	jmp secondForLoop
 	
 secondForLoop:
-	;j=i already done
-	mov ebx, dword[j]
+	mov r9d, dword[h]
+	cmp dword[j], r9d		;j>=h
+	jb endFirstForLoop		;jump to the outer for loop
+	jmp continueSecondLoop
 	
-	;j>=h
-	cmp ebx, dword[h]
-	jae checkAnd
+continueSecondLoop:
+	mov r10d, dword[j]
+	sub r10d, dword[h]		;j=j-h
+	mov eax, r10d
+	mov r11d, dword[lst+rax*4]	;get lst[j-h]
+	cmp r11d, dword[tmp]		;lst[j=h]
 	
-	jmp endFirstForLoop
+	ja endSecondLoop
+	jmp continueFirstForLoop
 	
-;check lst[j-h] > tmp
-checkAnd:
-	mov ecx, dword[j]
-	sub ecx, dword[h]
-	mov edx, dword[lst+rcx*4]
-	cmp edx, dword[tmp]
-	ja endSecondForLoop
-		
-	jmp endFirstForLoop
-
-endSecondForLoop:
-	;lst[j] = lst[j-h]
-	;note ecx = j-h
-	mov r8d, dword[lst+rcx*4]
-	mov r9d, dword[j]
-	mov dword[lst+r9*4], r8d
-	
-	;j=j-h
-	mov dword[j], ecx
-	
+endSecondLoop:
+	mov eax, dword[j]
+	mov ecx, dword[tmp]
+	mov dword[lst+rax*4], ecx	;lst[j] = tmp
+	mov dword[j], r10d
 	jmp secondForLoop
 
 endFirstForLoop:
-	;lst[j] = tmp
-	mov r9d, dword[j]
-	mov r10d, dword[tmp]
-	mov dword[lst+r9*4], r10d
-	
-	;check first for loop conditions
-	
-	;i = h-1
-	mov eax, dword[h]
-	sub eax, 1
-	mov dword[i], eax
-	
-	;i>length
-	cmp dword[i], 200
-	je endWhileLoop
-	
-	;i++
+	mov eax, dword[j]
+	mov ecx, dword[tmp]
+	mov dword[lst+rax*4], ecx	;lst[j] = tmp
 	inc dword[i]
 	jmp firstForLoop
 
-endWhileLoop:
-	;h = h/3
+	
+continueWhileLoop:
 	mov edx, 0
 	mov eax, dword[h]
-	mov ecx, 3
-	div ecx
+	mov ebx, 3
+	div ebx
 	mov dword[h], eax
-	
-	;h>0
-	cmp dword[h], 0
-	jle endSort
-	
 	jmp whileLoop
-
+	
 endSort:
 
 
