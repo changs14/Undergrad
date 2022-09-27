@@ -247,7 +247,7 @@ i		dd	0
 j		dd	0
 tmp		dd	0
 
-
+tmp2		dd	0
 ; -----
 ;  Provided string definitions.
 
@@ -312,76 +312,95 @@ endHLoop:
 mov eax, 0
 mov ebx, 0
 
+mov eax, dword[h]
+sub eax, 1
+mov dword[i], eax
+
+;Clear register again
+mov eax, 0
+
+;Beginning of while loop
 whileLoop:
-	;while h>0
-	cmp dword[h], 0
-	jle endSort
-	
 	jmp firstForLoop
 	
 firstForLoop:
-	;for (i=h-1; i<length; i++)
-	;eax = h-1
-	mov eax, dword[h]
-	sub eax, 1
-	mov dword[i], eax	;i = h-1
-	
 	;tmp = lst[i]
+	mov eax, dword[i]
 	mov ebx, dword[lst+rax*4]
 	mov dword[tmp], ebx
 	
 	;j = i
 	mov dword[j], eax
+	jmp secondForLoop
 	
-	cmp dword[i], 200
-	jge endWhileLoop
+secondForLoop:
+	;j=i already done
+	mov ebx, dword[j]
 	
-	secondForLoop:
-		mov ecx, dword[h]
-		cmp dword[j], ecx
-		jge checkSecondCondition
-		
-		jmp endFirstForLoop
-		
-	checkSecondCondition:
-		mov eax, dword[j]
-		sub eax, dword[h]
-		
-		mov edx, dword[tmp]
-		
-		;lst[j-h] > tmp
-		cmp dword[lst+rax*4], edx
-		jge continueSecondLoop
-		
-		jmp endFirstForLoop
+	;j>=h
+	cmp ebx, dword[h]
+	jae checkAnd
 	
-	continueSecondLoop:
-		;note eax = j-h
-		mov r8d, dword[j]
-		
-		;lst[j]
-		mov r9d, dword[lst+rax*4]
-		mov dword[lst+r8*4], r8d
-		
-		jmp endFirstForLoop
+	jmp endFirstForLoop
 	
+;check lst[j-h] > tmp
+checkAnd:
+	mov ecx, dword[j]
+	sub ecx, dword[h]
+	mov edx, dword[lst+rcx*4]
+	cmp edx, dword[tmp]
+	ja endSecondForLoop
+		
+	jmp endFirstForLoop
+
+endSecondForLoop:
+	;lst[j] = lst[j-h]
+	;note ecx = j-h
+	mov r8d, dword[lst+rcx*4]
+	mov r9d, dword[j]
+	mov dword[lst+r9*4], r8d
+	
+	;j=j-h
+	mov dword[j], ecx
+	
+	jmp secondForLoop
+
 endFirstForLoop:
 	;lst[j] = tmp
-	mov r9d, dword[tmp]
-	mov dword[lst+r8d*4], r9d
+	mov r9d, dword[j]
+	mov r10d, dword[tmp]
+	mov dword[lst+r9*4], r10d
 	
-endWhileLoop:
-	mov edx, 0
-	mov ecx, 3
+	;check first for loop conditions
+	
+	;i = h-1
 	mov eax, dword[h]
+	sub eax, 1
+	mov dword[i], eax
+	
+	;i>length
+	cmp dword[i], 200
+	je endWhileLoop
+	
+	;i++
+	inc dword[i]
+	jmp firstForLoop
+
+endWhileLoop:
+	;h = h/3
+	mov edx, 0
+	mov eax, dword[h]
+	mov ecx, 3
 	div ecx
 	mov dword[h], eax
 	
+	;h>0
+	cmp dword[h], 0
+	jle endSort
+	
 	jmp whileLoop
-	
-endSort:
-	
 
+endSort:
 
 
 ;Calculate the sum
