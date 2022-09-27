@@ -324,13 +324,9 @@ whileLoop:
 	jmp endSort			;h is below 0
 	
 firstForLoop:
-	;for(i=h, i<length, i++)
-	sub eax, 1			;h-1
-	mov dword[i], eax		;i=h
-	
 	cmp dword[i], 200		;i<length
 	jb continueFirstForLoop
-	jmp continueWhileLoop		;Jump to the end of the while loop
+	je continueWhileLoop		;Jump to the end of the while loop
 	
 continueFirstForLoop:
 	mov eax, dword[i]
@@ -367,6 +363,12 @@ endFirstForLoop:
 	mov eax, dword[j]
 	mov ecx, dword[tmp]
 	mov dword[lst+rax*4], ecx	;lst[j] = tmp
+	
+	;for(i=h-1, i<length, i++)
+	mov eax, dword[h]
+	sub eax, 1			;h-1
+	mov dword[i], eax		;i=h
+	
 	inc dword[i]
 	jmp firstForLoop
 
