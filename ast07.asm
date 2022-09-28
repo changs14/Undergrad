@@ -291,7 +291,6 @@ _start:
 ;tmp - temp variable
 
 mov dword[h], 1		;h = 1
-mov ecx, dword[len]	;length 
 
 ;while(h*3+1) < length
 hLoop:
@@ -314,7 +313,10 @@ mov ebx, 0
 
 ;Shell sort
 
-;h already established
+;set up i = h-1
+mov eax, dword[h]
+sub eax, 1			;h-1
+mov dword[i], eax		;i=h-1
 
 whileLoop:
 	;while h>0
@@ -322,66 +324,62 @@ whileLoop:
 	ja firstForLoop			;h is above 0
 	jbe endSort			;h is below 0
 	
-	firstForLoop:
-		;for(i=h-1, i<length, i++)
-		mov eax, dword[h]
-		sub eax, 1			;h-1
-		mov dword[i], eax		;i=h-1
+	firstForLoop:	
+		mov r8d, dword[i]
+		mov dword[j], r8d		;j=i
+		mov dword[tmp2], r8d
+		movsxd r8, dword[tmp2]
 		
-		mov eax, dword[i]
-		movsxd rax, dword[i]
-		mov r8d, dword[lst+rax*4]	;get lst[i]
-		mov dword[tmp], r8d		;tmp = lst[i]
-		
-		mov dword[j], eax		;j=i
+		mov r9d, dword[lst+r8*4]	;get lst[i]
+		mov dword[tmp], r9d		;tmp = lst[i]
 		
 		jmp secondForLoop
 		
 		secondForLoop:
-			;r9d = j
-			mov r9d, dword[j]
-			mov dword[tmp2], r9d
-			movsxd r9, dword[tmp2]
-			
-			;r10d = j-h
+			;r10d = j
 			mov r10d, dword[j]
-			sub r10d, dword[h]
+			mov dword[tmp2], r10d
+			movsxd r10, dword[tmp2]
+			
+			;r11d = j-h
+			mov r11d, dword[j]
+			sub r11d, dword[h]
+			mov dword[tmp2], r11d
+			movsxd r11, dword[tmp2]
 			
 			;lst[j] = lst[j-h]
-			mov dword[tmp2], r10d
-			movsxd r10, dword[tmp2]
-			mov ecx, dword[lst+r10*4]
-			mov dword[lst+r9*4], ecx	
+			mov ecx, dword[lst+r11*4]	;lst[j-h]
+			mov dword[lst+r10*4], ecx	;lst[j] = lst[j-h]
 			
-			jmp endSecondForLoop
 			
-		endSecondForLoop:
 			;Do all the comparisons
 			
-			mov r9d, dword[h]
-			cmp dword[j], r9d	;j>=h
+			mov r12d, dword[h]	;r12d = h
+			cmp dword[j], r12d	;j>=h
 			jb endFirstForLoop	;jump to the outer for loop
+
+			mov r13d, dword[j]	;r13d = j
+			sub r13d, dword[h]	;j=j-h
+			mov dword[tmp2], r13d
+			movsxd r13, dword[tmp2]
 			
-			mov r10d, dword[j]
-			sub r10d, dword[h]		;j=j-h
-			mov dword[tmp2], r10d
-			movsxd r10, dword[tmp2]
-			mov r11d, dword[lst+r10*4]	;get lst[j-h]
+			mov r14d, dword[lst+r13*4]	;get lst[j-h]
 			
-			cmp r11d, dword[tmp]		;lst[j-h] > tmp
+			cmp r14d, dword[tmp]		;lst[j-h] > tmp
 			jbe endFirstForLoop
 			
 			;j = j-h
-			mov dword[j], r10d
+			mov dword[j], r13d
 			
 			jmp secondForLoop
 
 	endFirstForLoop:
 		;Do all condition comparisons
+		;for(i=h-1, i<length, i++)
 		
-		movsxd rax, dword[j]
+		movsxd r15, dword[j]
 		mov ecx, dword[tmp]
-		mov dword[lst+rax*4], ecx	;lst[j] = tmp
+		mov dword[lst+r15*4], ecx	;lst[j] = tmp
 
 		cmp dword[i], 200
 		ja endWhileLoop
