@@ -318,61 +318,76 @@ mov ebx, 0
 
 whileLoop:
 	;while h>0
-	mov eax, dword[h]
 	cmp dword[h], 0
 	ja firstForLoop			;h is above 0
-	jmp endSort			;h is below 0
+	jbe endSort			;h is below 0
 	
-firstForLoop:
-	mov eax, dword[i]
-	mov dword[j], eax		;j=i
-	movsxd rax, dword[j]
-	mov r8d, dword[lst+rax*4]	;get lst[i]
-	mov dword[tmp], r8d		;tmp = lst[i]
-	
-	jmp secondForLoop
-	
-secondForLoop:
-	;r10d = j-h
-	mov r10d, dword[j]
-	sub r10d, dword[h]
-	mov ecx, dword[tmp]
-	mov dword[lst+r10*4], ecx	;lst[j] = tmp
-	mov dword[j], r10d
-	
-	jmp endSecondForLoop
-	
-endSecondForLoop:
-	mov r9d, dword[h]
-	cmp dword[j], r9d		;j>=h
-	jb endFirstForLoop		;jump to the outer for loop
-	
-	mov r10d, dword[j]
-	sub r10d, dword[h]		;j=j-h
-	mov dword[tmp2], r10d
-	movsxd r10, dword[tmp2]
-	mov r11d, dword[lst+r10*4]	;get lst[j-h]
-	
-	cmp r11d, dword[tmp]		;lst[j-h] > tmp
-	jbe endFirstForLoop
-	
-	jmp secondForLoop
+	firstForLoop:
+		;for(i=h-1, i<length, i++)
+		mov eax, dword[h]
+		sub eax, 1			;h-1
+		mov dword[i], eax		;i=h-1
+		
+		mov eax, dword[i]
+		movsxd rax, dword[i]
+		mov r8d, dword[lst+rax*4]	;get lst[i]
+		mov dword[tmp], r8d		;tmp = lst[i]
+		
+		mov dword[j], eax		;j=i
+		
+		jmp secondForLoop
+		
+		secondForLoop:
+			;r9d = j
+			mov r9d, dword[j]
+			mov dword[tmp2], r9d
+			movsxd r9, dword[tmp2]
+			
+			;r10d = j-h
+			mov r10d, dword[j]
+			sub r10d, dword[h]
+			
+			;lst[j] = lst[j-h]
+			mov dword[tmp2], r10d
+			movsxd r10, dword[tmp2]
+			mov ecx, dword[lst+r10*4]
+			mov dword[lst+r9*4], ecx	
+			
+			jmp endSecondForLoop
+			
+		endSecondForLoop:
+			;Do all the comparisons
+			
+			mov r9d, dword[h]
+			cmp dword[j], r9d	;j>=h
+			jb endFirstForLoop	;jump to the outer for loop
+			
+			mov r10d, dword[j]
+			sub r10d, dword[h]		;j=j-h
+			mov dword[tmp2], r10d
+			movsxd r10, dword[tmp2]
+			mov r11d, dword[lst+r10*4]	;get lst[j-h]
+			
+			cmp r11d, dword[tmp]		;lst[j-h] > tmp
+			jbe endFirstForLoop
+			
+			;j = j-h
+			mov dword[j], r10d
+			
+			jmp secondForLoop
 
-endFirstForLoop:
-	movsxd rax, dword[j]
-	mov ecx, dword[tmp]
-	mov dword[lst+rax*4], ecx	;lst[j] = tmp
-	
-	;for(i=h-1, i<length, i++)
-	mov eax, dword[h]
-	sub eax, 1			;h-1
-	mov dword[i], eax		;i=h-1
-	
-	cmp dword[i], 200
-	ja endWhileLoop
-	
-	inc dword[i]
-	jmp firstForLoop
+	endFirstForLoop:
+		;Do all condition comparisons
+		
+		movsxd rax, dword[j]
+		mov ecx, dword[tmp]
+		mov dword[lst+rax*4], ecx	;lst[j] = tmp
+
+		cmp dword[i], 200
+		ja endWhileLoop
+		
+		inc dword[i]
+		jmp firstForLoop
 
 endWhileLoop:
 	mov edx, 0
