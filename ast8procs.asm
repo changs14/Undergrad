@@ -46,7 +46,6 @@ tmp2		dd	0
 ; -----
 ;  Local variables for basicStats() function (if any).
 
-
 ; -----------------------------------------------------------------
 
 section	.bss
@@ -80,7 +79,13 @@ section	.text
 global	shellSort
 shellSort:
 
-
+push rbp
+mov rbp, rsp
+push r11
+push r12
+push r13
+push r14
+push r15
 
 ;SHELL SORT
 
@@ -186,7 +191,12 @@ endWhileLoop:
 	
 endSort:
 
-
+pop r15
+pop r14
+pop r13
+pop r12
+pop r11
+pop rbp
 
 	ret
 
@@ -269,8 +279,17 @@ evenLength:
 medianFound:
 
 ;Find the sum - call lstSum
+;rdi and rsi already established
+call lstSum
+mov dword[r9], eax
 
 ;Find the average - call lstAverage
+call lstAve
+mov dword[rbp+16], eax
+
+pop r13
+pop r12
+pop rbp
 
 	ret
 
@@ -295,6 +314,24 @@ lstSum:
 
 ;	YOUR CODE GOES HERE
 
+push rbp
+mov rbp, rsp
+push r12
+
+mov r12, 0
+mov eax, 0
+
+calculateSumLoop:
+	add eax, dword[rdi+r12*4]
+	cmp r12, rsi
+	je endCalculateSumLoop
+	inc r12
+	jmp calculateSumLoop
+	
+endCalculateSumLoop:	
+
+pop r12
+pop rbp
 
 
 	ret
@@ -318,9 +355,20 @@ lstSum:
 global	lstAve
 lstAve:
 
-
 ;	YOUR CODE GOES HERE
 
+push rbp
+mov rbp, rsp
+push r12
+
+call lstSum		;Gets sum in eax
+
+mov edx, 0
+mov r12d, rsi
+div r12d
+
+pop r12
+pop rbp
 
 	ret
 
