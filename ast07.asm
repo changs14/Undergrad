@@ -58,21 +58,10 @@ mov r9, 1
 mov eax, %1			;Get the number that will be converted
 mov ebx, %1
 
-cmp eax, 0
-jl %%isNegative
-
-jmp %%convertToStringLoop
-
-%%isNegative:
-	cdq
-	mov ecx, -1
-	idiv ecx
-	jmp %%convertToStringLoop
-
 %%convertToStringLoop:
-	cdq
+	mov edx, 0
 	mov ecx, 7
-	idiv ecx		;eax/7
+	div ecx		;eax/7
 	
 	cmp eax, 0		;Check if number can no longer be / 7
 	je %%checkSign	
@@ -88,15 +77,7 @@ jmp %%convertToStringLoop
 	mov byte[%2+r9], dl
 	inc r9
 	
-	cmp ebx, 0
-	jl %%negative
-	
 	mov byte[%2+r9], '+'
-	inc r9
-	jmp %%addSpace
-	
-%%negative:
-	mov byte[%2+r9], '-'
 	inc r9
 	jmp %%addSpace
 	
@@ -287,9 +268,6 @@ _start:
 
 ;SHELL SORT
 
-;len = 200
-;tmp - temp variable
-
 mov dword[h], 1		;h = 1
 
 ;while(h*3+1) < length
@@ -313,16 +291,16 @@ mov ebx, 0
 
 ;Shell sort
 
-;set up i = h-1
-mov eax, dword[h]
-sub eax, 1			;h-1
-mov dword[i], eax		;i=h-1
-
 whileLoop:
+	;set up i = h-1
+	mov eax, dword[h]
+	sub eax, 1			;h-1
+	mov dword[i], eax		;i=h-1
+	
 	;while h>0
 	cmp dword[h], 0
 	ja firstForLoop			;h is above 0
-	jbe endSort			;h is below 0
+	jmp endSort			;h is below 0
 	
 	firstForLoop:	
 		mov r8d, dword[i]
@@ -348,8 +326,8 @@ whileLoop:
 			movsxd r11, dword[tmp2]
 			
 			;lst[j] = lst[j-h]
-			mov ecx, dword[lst+r11*4]	;lst[j-h]
-			mov dword[lst+r10*4], ecx	;lst[j] = lst[j-h]
+			mov r14d, dword[lst+r11*4]	;lst[j-h]
+			mov dword[lst+r10*4], r14d	;lst[j] = lst[j-h]
 			
 			
 			;Do all the comparisons
@@ -357,19 +335,12 @@ whileLoop:
 			mov r12d, dword[h]	;r12d = h
 			cmp dword[j], r12d	;j>=h
 			jb endFirstForLoop	;jump to the outer for loop
-
-			mov r13d, dword[j]	;r13d = j
-			sub r13d, dword[h]	;j=j-h
-			mov dword[tmp2], r13d
-			movsxd r13, dword[tmp2]
-			
-			mov r14d, dword[lst+r13*4]	;get lst[j-h]
 			
 			cmp r14d, dword[tmp]		;lst[j-h] > tmp
 			jbe endFirstForLoop
 			
 			;j = j-h
-			mov dword[j], r13d
+			mov dword[j], r11d
 			
 			jmp secondForLoop
 
@@ -378,10 +349,10 @@ whileLoop:
 		;for(i=h-1, i<length, i++)
 		
 		movsxd r15, dword[j]
-		mov ecx, dword[tmp]
-		mov dword[lst+r15*4], ecx	;lst[j] = tmp
+		mov r13d, dword[tmp]
+		mov dword[lst+r15*4], r13d	;lst[j] = tmp
 
-		cmp dword[i], 200
+		cmp dword[i], 198
 		ja endWhileLoop
 		
 		inc dword[i]
@@ -399,14 +370,15 @@ endSort:
 
 
 ;Calculate the sum
-mov ecx, dword[len]
 mov rsi, 0
 
 calculateSumLoop:
 	mov eax, dword[lst+rsi*4]	;Get diameter in the list
 	add dword[sum], eax		;Add to the sum
+	cmp rsi, 199
+	je endCalculateSumLoop
 	inc rsi				;i++
-	loop calculateSumLoop		;loop back
+	jmp calculateSumLoop		;loop back
 
 
 endCalculateSumLoop:
@@ -415,25 +387,32 @@ endCalculateSumLoop:
 ;Calculate the average
 mov eax, dword[sum]			;Get the sum
 mov edx, 0
-idiv dword[len]				;sum/length
+div dword[len]				;sum/length
 mov dword[avg], eax			;Store average in var
 
 ;Reset counters
-mov ecx, dword[len]
 mov rsi, 0
+
+mov eax, dword[lst]
+mov dword[min], eax
 
 minimumLoop:
 	mov eax, dword[lst+rsi*4] ;Get diameter
 	cmp dword[min], eax		 ;Compare current min to array item
 	jle notMinimum			 ;Curr num is not smaller than min
 	mov dword[min], eax		 ;Current number is new min
+	cmp rsi, 200
+	je endMin
 	inc rsi				 ;i++
-	loop minimumLoop
+	jmp minimumLoop
 
 notMinimum:
+	cmp rsi, 200
+	je endMin
 	inc rsi				 ;i++
-	loop minimumLoop
-	
+	jmp minimumLoop
+
+endMin:	
 movsxd rcx, dword[len]			;Get the length of the list
 mov rsi, 0				;Reset counter
 
@@ -455,6 +434,14 @@ notMax:
 
 endLoop:
 	;Max has been found
+	
+;Find the medians
+mov edx, 0
+mov eax, dword[lst+99*4]
+add eax, dword[lst+100*4]
+mov ecx, 2
+div ecx
+mov dword[med], eax
 
 ; ******************************
 ;  Display results to screen in septenary.
