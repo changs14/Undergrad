@@ -226,7 +226,51 @@ basicStats:
 
 ;	YOUR CODE GOES HERE
 
+push rbp
+mov rbp, rsp
+push r12
+push r13
 
+;Get min and max
+;min - end of list	max - start of list
+
+mov eax, dword[rdi] 		;Get first item in the list
+mov dword[r8], eax		;Store maximum
+
+mov r12, rsi			;Get the length
+dec r12
+mov eax, dword[rdi+r12*4]	;Get last item in the list
+mov dword[rdx], eax		;Store minimum
+
+;Find median of the list
+mov rax, rsi
+mov rdx, 0
+mov r12, 2
+idiv r12
+
+cmp rdx, 0
+je evenLength
+
+mov r12d, dword[rdi+rax*4]
+mov dword[rcx], r12d
+
+jmp medianFound
+
+evenLength:
+	mov rdx, 0
+	mov r12d, dword[rdi+rax*4]	;Get list[i]
+	dec rax
+	add r12d, dword[rdi+rax*4]	;Add list[i-1]
+	mov eax, r12d
+	mov ebx, 2
+	idiv ebx
+	mov dword[rcx], eax		;Store median
+	
+medianFound:
+
+;Find the sum - call lstSum
+
+;Find the average - call lstAverage
 
 	ret
 
