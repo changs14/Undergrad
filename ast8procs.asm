@@ -46,6 +46,7 @@ tmp2		dd	0
 ; -----
 ;  Local variables for basicStats() function (if any).
 
+length dq 0
 ; -----------------------------------------------------------------
 
 section	.bss
@@ -89,20 +90,24 @@ push r15
 
 ;SHELL SORT
 
+mov dword[i], 0
+mov dword[tmp], 0
+mov dword[j], 0
+
 mov dword[h], 1		;h = 1
-mov r13, rsi
+mov rcx, rsi
 
 ;while(h*3+1) < length
 hLoop:
 	;h*3+1
 	mov eax, dword[h]
 	mov ebx, 3
-	mul ebx
+	imul ebx
 	add eax, 1
 	
 	mov dword[h], eax
 	
-	cmp dword[h], r13d	;Compare if h*3+1 < length
+	cmp dword[h], ecx	;Compare if h*3+1 < length
 	jg endHLoop		;endHLoop if it is bigger
 	
 endHLoop:
@@ -110,7 +115,7 @@ endHLoop:
 ;Clear registers
 mov eax, 0
 mov ebx, 0
-sub r13d, 2
+sub ecx, 2
 
 ;Shell sort
 
@@ -122,7 +127,7 @@ whileLoop:
 	
 	;while h>0
 	cmp dword[h], 0
-	ja firstForLoop			;h is above 0
+	jg firstForLoop			;h is above 0
 	jmp endSort			;h is below 0
 	
 	firstForLoop:	
@@ -157,10 +162,10 @@ whileLoop:
 			
 			mov r12d, dword[h]	;r12d = h
 			cmp dword[j], r12d	;j>=h
-			jb endFirstForLoop	;jump to the outer for loop
+			jl endFirstForLoop	;jump to the outer for loop
 			
 			cmp r14d, dword[tmp]		;lst[j-h] > tmp
-			jbe endFirstForLoop
+			jle endFirstForLoop
 			
 			;j = j-h
 			mov dword[j], r11d
@@ -175,8 +180,8 @@ whileLoop:
 		mov r13d, dword[tmp]
 		mov dword[rdi+r15*4], r13d	;lst[j] = tmp
 
-		cmp dword[i], r13d
-		ja endWhileLoop
+		cmp dword[i], ecx
+		jg endWhileLoop
 		
 		inc dword[i]
 		jmp firstForLoop
@@ -185,7 +190,7 @@ endWhileLoop:
 	mov edx, 0
 	mov eax, dword[h]
 	mov ebx, 3
-	div ebx
+	idiv ebx
 	mov dword[h], eax
 	jmp whileLoop
 	
@@ -248,9 +253,10 @@ mov eax, dword[rdi] 		;Get first item in the list
 mov dword[r8], eax		;Store maximum
 
 mov r12, rsi			;Get the length
-dec r12
-mov eax, dword[rdi+r12*4]	;Get last item in the list
-mov dword[rdx], eax		;Store minimum
+sub r12, 1
+
+mov r13d, dword[rdi+r12*4]	;Get last item in the list
+mov dword[rdx], r13d		;Store minimum
 
 ;Find median of the list
 mov rax, rsi
@@ -284,8 +290,9 @@ call lstSum
 mov dword[r9], eax
 
 ;Find the average - call lstAverage
+mov r13, qword[rbp+16]
 call lstAve
-mov dword[rbp+16], eax
+mov dword[r13], eax
 
 pop r13
 pop r12
@@ -311,26 +318,23 @@ pop rbp
 global	lstSum
 lstSum:
 
-
-;	YOUR CODE GOES HERE
-
 push rbp
 mov rbp, rsp
-push r12
 
-mov r12, 0
+mov rbx, 0
+mov qword[length], rsi
+sub qword[length], 1
 mov eax, 0
 
 calculateSumLoop:
-	add eax, dword[rdi+r12*4]
-	cmp r12, rsi
+	add eax, dword[rdi+rbx*4]
+	cmp rbx, qword[length]
 	je endCalculateSumLoop
-	inc r12
+	inc rbx
 	jmp calculateSumLoop
 	
 endCalculateSumLoop:	
 
-pop r12
 pop rbp
 
 
@@ -361,11 +365,13 @@ push rbp
 mov rbp, rsp
 push r12
 
+mov r12, rsi
+
 call lstSum		;Gets sum in eax
 
+cdq
 mov edx, 0
-mov r12d, rsi
-div r12d
+idiv r12d
 
 pop r12
 pop rbp
@@ -400,6 +406,12 @@ linearRegression:
 
 ;	YOUR CODE GOES HERE
 
+push rbp
+mov rbp, rsp
+push r12
+
+pop r12
+pop rsp
 
 	ret
 
