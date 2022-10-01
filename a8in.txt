@@ -1,0 +1,121 @@
+#------------------------------------
+# CS 218 - Assignment #8
+#  Debugger Input Script
+#------------------------------------
+echo \n\n
+break last
+run
+set pagination off
+set logging file a8out.txt
+set logging overwrite
+set logging on
+set prompt
+echo ------------------------------------ \n
+echo display variables \n
+echo \n
+
+echo First List:\t
+echo \n
+x/13dw &xList_1
+echo \n
+x/13dw &yList_1
+echo \n
+echo length 1:\t
+x/dw &len_1
+
+echo \n
+echo xmin_1:\t
+x/dw &xMin_1
+echo xmed_1:\t
+x/dw &xMed_1
+echo xmax_1:\t
+x/dw &xMax_1
+echo xsum_1:\t
+x/dw &xSum_1
+echo xavg_1:\t
+x/dw &xAve_1
+
+echo \n
+echo ymin_1:\t
+x/dw &yMin_1
+echo ymed_1:\t
+x/dw &yMed_1
+echo ymax_1:\t
+x/dw &yMax_1
+echo ysum_1:\t
+x/dw &ySum_1
+echo yavg_1:\t
+x/dw &yAve_1
+
+
+
+echo Second List:\t
+echo \n
+x/50dw &xList_2
+echo \n
+x/13dw &yList_2
+echo \n
+echo length 2:\t
+x/dw &len_2
+
+echo \n
+echo xmin_2:\t
+x/dw &xMin_2
+echo xmed_2:\t
+x/dw &xMed_2
+echo xmax_2:\t
+x/dw &xMax_2
+echo xsum_2:\t
+x/dw &xSum_2
+echo xavg_2:\t
+x/dw &xAve_2
+
+echo \n
+echo ymin_2:\t
+x/dw &yMin_2
+echo ymed_2:\t
+x/dw &yMed_2
+echo ymax_2:\t
+x/dw &yMax_2
+echo ysum_2:\t
+x/dw &ySum_2
+echo yavg_2:\t
+x/dw &yAve_2
+
+
+echo Third List:\t
+echo \n
+x/50dw &xList_3
+echo \n
+x/13dw &yList_3
+echo \n
+echo length 3:\t
+x/dw &len_3
+
+echo \n
+echo xmin_3:\t
+x/dw &xMin_3
+echo xmed_3:\t
+x/dw &xMed_3
+echo xmax_3:\t
+x/dw &xMax_3
+echo xsum_3:\t
+x/dw &xSum_3
+echo xavg_3:\t
+x/dw &xAve_3
+
+echo \n
+echo ymin_3:\t
+x/dw &yMin_3
+echo ymed_3:\t
+x/dw &yMed_3
+echo ymax_3:\t
+x/dw &yMax_3
+echo ysum_3:\t
+x/dw &ySum_3
+echo yavg_3:\t
+x/dw &yAve_3
+
+echo \n \n
+set logging off
+
