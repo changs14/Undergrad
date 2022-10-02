@@ -35,6 +35,7 @@ x/dw &xSum_1
 echo xavg_1:\t
 x/dw &xAve_1
 
+
 echo \n
 echo ymin_1:\t
 x/dw &yMin_1
@@ -46,7 +47,10 @@ echo ysum_1:\t
 x/dw &ySum_1
 echo yavg_1:\t
 x/dw &yAve_1
-
+echo b0_1: \t
+x/dw &b0_1
+echo b1_1: \t
+x/dw &b1_1
 
 
 echo Second List:\t
@@ -81,6 +85,10 @@ echo ysum_2:\t
 x/dw &ySum_2
 echo yavg_2:\t
 x/dw &yAve_2
+echo b0_2: \t
+x/dw &b0_2
+echo b1_2: \t
+x/dw &b1_2
 
 
 echo Third List:\t
@@ -115,6 +123,10 @@ echo ysum_3:\t
 x/dw &ySum_3
 echo yavg_3:\t
 x/dw &yAve_3
+echo b0_3: \t
+x/dw &b0_3
+echo b1_3: \t
+x/dw &b1_3
 
 echo \n \n
 set logging off

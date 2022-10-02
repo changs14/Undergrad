@@ -3,7 +3,10 @@
 ;  NSHE ID: 20011508920
 ;  Section: 1002
 ;  Assignment: 8
-;  Description:
+;  Description: This program will take two lists of numbers and sort them
+; 		descending. It will find all the stats of the each list,
+;		median, max, min, average, and sum. Then it will find the 
+;		linear regression of each pair of lists. 
 
 
 ; -----------------------------------------------------------------
@@ -56,6 +59,8 @@ section	.bss
 
 qSum		resq	1
 dSum		resd	1
+
+
 
 
 ; *****************************************************************
@@ -165,7 +170,7 @@ whileLoop:
 			jl endFirstForLoop	;jump to the outer for loop
 			
 			cmp r14d, dword[tmp]		;lst[j-h] > tmp
-			jle endFirstForLoop
+			jge endFirstForLoop
 			
 			;j = j-h
 			mov dword[j], r11d
@@ -237,9 +242,6 @@ pop rbp
 
 global basicStats
 basicStats:
-
-
-;	YOUR CODE GOES HERE
 
 push rbp
 mov rbp, rsp
@@ -327,10 +329,10 @@ sub qword[length], 1
 mov eax, 0
 
 calculateSumLoop:
-	add eax, dword[rdi+rbx*4]
-	cmp rbx, qword[length]
+	add eax, dword[rdi+rbx*4]		;add lst[i] to sum
+	cmp rbx, qword[length]			;check end of list
 	je endCalculateSumLoop
-	inc rbx
+	inc rbx					;i++
 	jmp calculateSumLoop
 	
 endCalculateSumLoop:	
@@ -359,8 +361,6 @@ pop rbp
 global	lstAve
 lstAve:
 
-;	YOUR CODE GOES HERE
-
 push rbp
 mov rbp, rsp
 push r12
@@ -371,7 +371,7 @@ call lstSum		;Gets sum in eax
 
 cdq
 mov edx, 0
-idiv r12d
+idiv r12d		;sum/length
 
 pop r12
 pop rbp
@@ -403,17 +403,84 @@ pop rbp
 global linearRegression
 linearRegression:
 
-
-;	YOUR CODE GOES HERE
-
 push rbp
 mov rbp, rsp
 push r12
+push r13
+push r14
+push r15
 
+mov r14, qword[rbp+16]
+
+mov r12, 0
+mov r15, rdx
+dec r15
+
+mov qword[qSum], 0
+mov dword[dSum], 0
+
+;calculate the linear regression - b1 first
+multiplyLoop:
+	;get (x[i]-xavg) * (y[i]-yavg)
+	movsxd r13, dword[rdi+r12*4]
+	sub r13, rcx				;x[i] - xavg
+	
+	movsxd rax, dword[rsi+r12*4]		;get y[i]
+	sub rax, r8				;y[i] - avg y
+	
+	;(x[i]*xavg) * (y[i]*yavg)
+	imul r13
+	add qword[qSum], rax		
+	
+	cmp r12, r15				;check end of list
+	je endMultiplyLoop
+	
+	inc r12					;i++
+	jmp multiplyLoop
+	
+endMultiplyLoop:
+
+mov r12, 0
+
+squareLoop:	
+	mov r13d, dword[rdi+r12*4]
+	sub r13d, ecx				;x[i] - xavg
+	
+	;(x[i]-xavg)^2
+	mov eax, r13d
+	imul eax
+	
+	add dword[dSum], eax			;add to the sum
+	
+	cmp r12, r15				;check end of list
+	je endSquareLoop
+	
+	inc r12					;i++
+	jmp squareLoop
+	
+endSquareLoop:
+
+;(x[i]*xavg) * (y[i]*yavg) / (x[i]-xavg)^2
+cdq
+mov eax, dword[qSum]
+mov edx, dword[qSum+4]
+idiv dword[dSum]
+	
+mov dword[r14], eax
+
+mov ebx, r8d
+imul ecx
+sub ebx, eax
+
+mov dword[r9], ebx
+
+pop r15
+pop r14
+pop r13
 pop r12
-pop rsp
+pop rbp
 
-	ret
+ret
 
 ; ********************************************************************************
 
