@@ -3,7 +3,7 @@
 ;  NSHE ID: 2001508920
 ;  Section: 1002
 ;  Assignment: 9
-;  Description: 
+;  Description: Gets a number input from the user.
 
 ; -----------------------------------------------------------------------------
 ;  Write assembly language functions.
@@ -103,12 +103,79 @@ section	.text
 ;	1) numberRead, addr - rdi
 
 ;  Returns:
-;	number read (via reference)
-;	status code (as above)
+;	number read (via reference) - rbp +16
+;	status code (as above) - rbp +24
 
 
-;	YOUR CODE GOES HERE
+global readSeptNum
+readSeptNum:
 
+push rbp
+mov rbp, rsp
+push rbx
+push r12
+push r13
+push r14
+
+mov r14, qword[rbp+16]
+
+sub rbp, 104
+
+mov rbx, rdi
+;lea rbx, byte[rbp-100]
+mov r12,0
+mov rdx, 0
+lea r13, byte[rbp-104]
+mov r13, 0
+
+init:
+	mov byte[rbx+rdx], 0
+	cmp rdx, BUFFSIZE
+	je endInit
+	
+	inc rdx
+	jmp init
+	
+endInit:
+
+mov rdx, 0
+	
+
+read:
+	mov rax, SYS_read
+	mov rdi, STDIN
+	lea rsi, byte[r13]
+	mov rdx, 1
+	syscall
+	
+	mov al, byte[r13]
+	cmp al, LF
+	je endRead
+	
+	inc r12
+	cmp r12, BUFFSIZE
+	ja read
+	
+	mov byte[rbx+rdx], al
+	inc rdx
+	
+	jmp read
+	
+endRead:
+	mov byte[rbx+rdx], NULL
+	
+mov rdi, rbx
+mov r14, SUCCESS
+
+pop r14
+pop r13
+pop r12
+pop rbx
+
+mov rsp, rbp
+pop rbp
+
+ret
 
 ; -----------------------------------------------------------------------------
 ;  Shell sort function.
@@ -124,6 +191,9 @@ section	.text
 ;  Returns:
 ;	sorted list (list passed by reference)
 
+global shellSort
+shellSort:
+
 push rbp
 mov rbp, rsp
 push r11
@@ -132,26 +202,30 @@ push r13
 push r14
 push r15
 
+sub rbp, 100
+
 ;SHELL SORT
 
-mov dword[i], 0
-mov dword[tmp], 0
-mov dword[j], 0
+mov dword[rbp-100], 0		;i
+mov dword[rbp-96], 0		;temp
+mov dword[rbp-92], 0		;j
 
-mov dword[h], 1		;h = 1
+mov dword[rbp-88], 1		;h = 1
 mov rcx, rsi
+
+mov dword[rbp-84], 0 		;tmp 2
 
 ;while(h*3+1) < length
 hLoop:
 	;h*3+1
-	mov eax, dword[h]
+	mov eax, dword[rbp-88]
 	mov ebx, 3
 	imul ebx
 	add eax, 1
 	
-	mov dword[h], eax
+	mov dword[rbp-88], eax
 	
-	cmp dword[h], ecx	;Compare if h*3+1 < length
+	cmp dword[rbp-88], ecx	;Compare if h*3+1 < length
 	jg endHLoop		;endHLoop if it is bigger
 	
 endHLoop:
@@ -165,37 +239,37 @@ sub ecx, 2
 
 whileLoop:
 	;set up i = h-1
-	mov eax, dword[h]
+	mov eax, dword[rbp-88]
 	sub eax, 1			;h-1
-	mov dword[i], eax		;i=h-1
+	mov dword[rbp-100], eax		;i=h-1
 	
 	;while h>0
-	cmp dword[h], 0
+	cmp dword[rbp-88], 0
 	jg firstForLoop			;h is above 0
 	jmp endSort			;h is below 0
 	
 	firstForLoop:	
-		mov r8d, dword[i]
-		mov dword[j], r8d		;j=i
-		mov dword[tmp2], r8d
-		movsxd r8, dword[tmp2]
+		mov r8d, dword[rbp-100]
+		mov dword[rbp-92], r8d		;j=i
+		mov dword[rbp-88], r8d
+		movsxd r8, dword[rbp-88]
 		
 		mov r9d, dword[rdi+r8*4]	;get lst[i]
-		mov dword[tmp], r9d		;tmp = lst[i]
+		mov dword[rbp-96], r9d		;tmp = lst[i]
 		
 		jmp secondForLoop
 		
 		secondForLoop:
 			;r10d = j
-			mov r10d, dword[j]
-			mov dword[tmp2], r10d
-			movsxd r10, dword[tmp2]
+			mov r10d, dword[rbp-92]
+			mov dword[rbp-88], r10d
+			movsxd r10, dword[rbp-88]
 			
 			;r11d = j-h
-			mov r11d, dword[j]
-			sub r11d, dword[h]
-			mov dword[tmp2], r11d
-			movsxd r11, dword[tmp2]
+			mov r11d, dword[rbp-92]
+			sub r11d, dword[rbp-88]
+			mov dword[rbp-88], r11d
+			movsxd r11, dword[rbp-88]
 			
 			;lst[j] = lst[j-h]
 			mov r14d, dword[rdi+r11*4]	;lst[j-h]
@@ -204,15 +278,15 @@ whileLoop:
 			
 			;Do all the comparisons
 			
-			mov r12d, dword[h]	;r12d = h
-			cmp dword[j], r12d	;j>=h
+			mov r12d, dword[rbp-88]	;r12d = h
+			cmp dword[rbp-92], r12d	;j>=h
 			jl endFirstForLoop	;jump to the outer for loop
 			
-			cmp r14d, dword[tmp]		;lst[j-h] > tmp
+			cmp r14d, dword[rbp-96]		;lst[j-h] > tmp
 			jge endFirstForLoop
 			
 			;j = j-h
-			mov dword[j], r11d
+			mov dword[rbp-92], r11d
 			
 			jmp secondForLoop
 
@@ -220,25 +294,27 @@ whileLoop:
 		;Do all condition comparisons
 		;for(i=h-1, i<length, i++)
 		
-		movsxd r15, dword[j]
-		mov r13d, dword[tmp]
+		movsxd r15, dword[rbp-92]
+		mov r13d, dword[rbp-96]
 		mov dword[rdi+r15*4], r13d	;lst[j] = tmp
 
-		cmp dword[i], ecx
+		cmp dword[rbp-100], ecx
 		jg endWhileLoop
 		
-		inc dword[i]
+		inc dword[rbp-100]
 		jmp firstForLoop
 
 endWhileLoop:
 	mov edx, 0
-	mov eax, dword[h]
+	mov eax, dword[rbp-88]
 	mov ebx, 3
 	idiv ebx
-	mov dword[h], eax
+	mov dword[rbp-88], eax
 	jmp whileLoop
 	
 endSort:
+
+mov rbp, rsp
 
 pop r15
 pop r14
@@ -247,6 +323,7 @@ pop r12
 pop r11
 pop rbp
 
+ret
 
 ; -----------------------------------------------------------------------------
 ;  Find basic statistical information for a list of integers:
@@ -268,6 +345,9 @@ pop rbp
 ;  Returns:
 ;	minimum, median, maximum, sum, and average
 ;	via pass-by-reference (addresses on stack)
+
+global basicStats
+basicStats:
 
 push rbp
 mov rbp, rsp
@@ -326,6 +406,8 @@ pop r13
 pop r12
 pop rbp
 
+ret
+
 
 ; -----------------------------------------------------------------------------
 ;  Function to calculate the sum of a list.
@@ -341,26 +423,31 @@ pop rbp
 ;  Returns:
 ;	sum (in eax)
 
+global lstSum
+lstSum:
+
 push rbp
+push r12
 mov rbp, rsp
 
 mov rbx, 0
-mov qword[length], rsi
-sub qword[length], 1
+mov r12, rsi
+sub r12, 1
 mov eax, 0
 
 calculateSumLoop:
 	add eax, dword[rdi+rbx*4]		;add lst[i] to sum
-	cmp rbx, qword[length]			;check end of list
+	cmp rbx, r12			;check end of list
 	je endCalculateSumLoop
 	inc rbx					;i++
 	jmp calculateSumLoop
 	
 endCalculateSumLoop:	
 
+pop r12
 pop rbp
 
-
+ret
 
 ; -----------------------------------------------------------------------------
 ;  Function to calculate the average of a list.
@@ -377,7 +464,8 @@ pop rbp
 ;  Returns:
 ;	average (in eax)
 
-
+global lstAve
+lstAve:
 
 push rbp
 mov rbp, rsp
@@ -394,7 +482,7 @@ idiv r12d		;sum/length
 pop r12
 pop rbp
 
-
+ret
 ; -----------------------------------------------------------------------------
 ;  Function to calculate the linear regression
 ;  between two lists (of equal size).
@@ -415,7 +503,8 @@ pop rbp
 ;  Returns:
 ;	b0 and b1 via reference
 
-
+global linearRegression
+linearRegression:
 
 push rbp
 mov rbp, rsp
@@ -430,21 +519,21 @@ mov r12, 0
 mov r15, rdx
 dec r15
 
-mov qword[qSum], 0
-mov dword[dSum], 0
+mov r13, 0 		;mov qword[qSum], 0
+mov rbx, 0			;mov dword[dSum], 0
 
 ;calculate the linear regression - b1 first
 multiplyLoop:
 	;get (x[i]-xavg) * (y[i]-yavg)
-	movsxd r13, dword[rdi+r12*4]
-	sub r13, rcx				;x[i] - xavg
+	movsxd rbx, dword[rdi+r12*4]
+	sub rbx, rcx				;x[i] - xavg
 	
 	movsxd rax, dword[rsi+r12*4]		;get y[i]
 	sub rax, r8				;y[i] - avg y
 	
 	;(x[i]*xavg) * (y[i]*yavg)
-	imul r13
-	add qword[qSum], rax		
+	imul rbx
+	add r13, rax		
 	
 	cmp r12, r15				;check end of list
 	je endMultiplyLoop
@@ -455,16 +544,18 @@ multiplyLoop:
 endMultiplyLoop:
 
 mov r12, 0
+mov rbx, 0
 
 squareLoop:	
-	mov r13d, dword[rdi+r12*4]
-	sub r13d, ecx				;x[i] - xavg
+	mov r14d, dword[rdi+r12*4]
+	sub r14d, ecx				;x[i] - xavg
 	
 	;(x[i]-xavg)^2
-	mov eax, r13d
+	mov eax, r14d
 	imul eax
+	mov r14d, eax
 	
-	add dword[dSum], eax			;add to the sum
+	add ebx, r14d			;add to the sum
 	
 	cmp r12, r15				;check end of list
 	je endSquareLoop
@@ -476,10 +567,11 @@ endSquareLoop:
 
 ;(x[i]*xavg) * (y[i]*yavg) / (x[i]-xavg)^2
 cdq
-mov eax, dword[qSum]
-mov edx, dword[qSum+4]
-idiv dword[dSum]
-	
+mov eax, r13d
+mov edx, dword[r13+4]
+idiv ebx
+
+mov r14, qword[rbp+16]
 mov dword[r14], eax
 
 mov ebx, r8d
@@ -494,7 +586,7 @@ pop r13
 pop r12
 pop rbp
 
-
+ret
 
 ; -----------------------------------------------------------------------------
 
