@@ -115,46 +115,31 @@ mov rbp, rsp
 push rbx
 push r12
 push r13
-push r14
 
-mov r14, qword[rbp+16]
+sub rbp, 51
 
-sub rbp, 104
-
-mov rbx, rdi
-;lea rbx, byte[rbp-100]
+lea rbx, byte[rbp-50]
+mov r13, rdi
 mov r12,0
-mov rdx, 0
-lea r13, byte[rbp-104]
-mov r13, 0
-
-init:
-	mov byte[rbx+rdx], 0
-	cmp rdx, BUFFSIZE
-	je endInit
-	
-	inc rdx
-	jmp init
-	
-endInit:
-
 mov rdx, 0
 	
 
 read:
 	mov rax, SYS_read
 	mov rdi, STDIN
-	lea rsi, byte[r13]
+	lea rsi, byte[rbp-51]
 	mov rdx, 1
 	syscall
 	
-	mov al, byte[r13]
+	mov rdi, r13
+	
+	mov al, byte[rbp-51]
 	cmp al, LF
 	je endRead
 	
 	inc r12
 	cmp r12, BUFFSIZE
-	ja read
+	jae read
 	
 	mov byte[rbx+rdx], al
 	inc rdx
@@ -164,15 +149,14 @@ read:
 endRead:
 	mov byte[rbx+rdx], NULL
 	
-mov rdi, rbx
-mov r14, SUCCESS
+mov rdi, SUCCESS
 
-pop r14
 pop r13
 pop r12
 pop rbx
 
 mov rsp, rbp
+
 pop rbp
 
 ret
