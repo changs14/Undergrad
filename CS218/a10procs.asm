@@ -3,7 +3,10 @@
 ;  NSHE ID: 2001508920
 ;  Section: 1002
 ;  Assignment: 10
-;  Description:  
+;  Description:  This program will work with OpenGL to create a circle image.
+;		 The program will get user input of the drawing
+;		 speed, colour, and size and check if the input is
+;		 valid. Then using the values, use it to draw.
 
 ; -----
 ;  Function: getParams
@@ -246,9 +249,6 @@ jne errorColourSpec
 ;Check colour value
 mov rdi, qword[r13+4*8]
 
-;Check speed value
-mov rdi, qword[r13+2*8]
-
 ;Convert colour to integer value
 mov rax, 0
 mov r14, 0
@@ -410,10 +410,9 @@ drawWheels:
 ;  Set draw speed step
 ;	sStep = speed / scale
 
-mov rax, qword[speed]
-mov rdx, 0
-div qword[scale]
-mov qword[sStep], rax
+cvtsi2sd xmm0, dword[speed]
+divsd xmm0, qword[scale]
+movsd qword[sStep], xmm0
 
 ; -----
 ;  Prepare for drawing
@@ -451,6 +450,36 @@ call glColor3ub
 
 ;	YOUR CODE GOES HERE
 
+;fltTwoPiS
+movsd xmm1, qword[fltTwo]
+mulsd xmm1, qword[pi]
+movsd qword[fltTwoPiS], xmm1
+
+movsd xmm2, qword[fltZero]
+
+firstFunctionLoop:
+	movsd qword[t], xmm2
+	
+	mov rdi, t
+	call sin
+	movsd qword[y], xmm0	;y =sin(t)
+
+	call cos
+	movsd qword[x], xmm0	;x=cos(t)
+	
+	movsd xmm0, qword[x]
+	movsd xmm1, qword[y]
+	
+	call glVertex2d
+	
+	ucomisd xmm2, qword[fltTwoPiS]
+	je endFirstFunction
+	
+	addsd xmm2, qword[tStep]
+	
+	jmp firstFunctionLoop
+	
+endFirstFunction:
 
 ; -----
 ;  Display image
