@@ -472,7 +472,7 @@ movsd xmm2, qword[fltZero]
 firstFunctionLoop:
 	movsd qword[t], xmm2
 	
-	mov rdi, t
+	movsd xmm0, qword[t]
 	call sin
 	movsd qword[y], xmm0	;y =sin(t)
 
@@ -492,6 +492,176 @@ firstFunctionLoop:
 	jmp firstFunctionLoop
 	
 endFirstFunction:
+
+movsd xmm0, qword[s]
+addsd xmm0, qword[sStep]
+movsd qword[s], xmm0
+
+movsd xmm0, qword[fltZero]
+movsd qword[t], xmm0
+
+secondFunction:
+	;Get x2
+	;cos(t)/3 + 2cos(2pis)/3
+	movsd xmm0, qword[t]
+	call cos
+	divsd xmm0, qword[fltThree]
+	movsd qword[x], xmm0
+	
+	;2cos(2pis)/3
+	mulsd xmm0, qword[fltTwo]
+	mulsd xmm0, qword[fltTwoPiS]
+	mulsd xmm0, qword[s]
+	call cos
+	mulsd xmm0, qword[fltTwo]
+	divsd xmm0, qword[fltThree]
+	movsd qword[fltTmp1], xmm0
+	
+	movsd xmm1, qword[x]
+	addsd xmm1, xmm0
+	movsd qword[x], xmm1
+	
+	;sin(t)/3
+	movsd xmm0, qword[t]
+	call sin
+	divsd xmm0, qword[fltThree]
+	movsd qword[y], xmm0
+	
+	;2sin(2pis)/3
+	mulsd xmm0, qword[fltTwo]
+	mulsd xmm0, qword[fltTwoPiS]
+	mulsd xmm0, qword[s]
+	call sin
+	mulsd xmm0, qword[fltTwo]
+	divsd xmm0, qword[fltThree]
+	
+	movsd xmm1, qword[y]
+	addsd xmm1, xmm0
+	movsd qword[y], xmm1
+	
+	movsd xmm0, qword[x]
+	movsd xmm1, qword[y]
+	
+	call glVertex2d
+
+	ucomisd xmm2, qword[fltTwoPiS]
+	je endFirstFunction
+	
+	addsd xmm2, qword[tStep]
+	jmp secondFunction
+
+endSecondFunction:
+
+movsd xmm0, qword[s]
+addsd xmm0, qword[sStep]
+movsd qword[s], xmm0
+	
+movsd xmm0, qword[fltZero]
+movsd qword[t], xmm0
+
+thirdFunction:
+	;tcos(4pis)/6pi
+	movsd xmm1, qword[fltSix]
+	mulsd xmm1, qword[pi]
+	
+	movsd xmm0, qword[fltFour]
+	mulsd xmm0, qword[pi]
+	mulsd xmm0, qword[s]
+	call cos
+	mulsd xmm0, qword[2]
+	
+	divsd xmm0, xmm1
+	addsd xmm0, qword[fltTemp1]
+	
+	movsd qword[x], xmm0
+	
+	;2sin(2pis)/3
+	movsd xmm0, qword[t]
+	call sin
+	mulsd xmm0, qword[fltTwo]
+	mulsd xmm0, qword[fltTwoPiS]
+	mulsd xmm0, qword[s]
+	divsd xmm0, qword[fltThree]
+	
+	;tsin(4pis)/(6pi)
+	movsd xmm0, qword[t]
+	call sin
+	mulsd xmm0, qword[t]
+	
+	movsd xmm1, qword[fltFour]
+	mulsd xmm1, qword[pi]
+	mulsd xmm1, qword[s]
+	
+	movsd xmm2, qword[fltSix]
+	mulsd xmm2, qword[pi]
+	
+	divsd xmm1, xmm2
+	
+	movsd xmm3, qword[y]
+	subsd xmm3, xmm1
+	movsd qword[y], xmm3
+	
+	movsd xmm0, qword[x]
+	movsd xmm1, qword[y]
+	
+	call glVertex2d
+
+	ucomisd xmm2, qword[fltTwoPiS]
+	je endThirdFunction
+	
+	addsd xmm2, qword[tStep]
+	jmp thirdFunction 
+
+endThirdFunction:
+
+movsd xmm0, qword[s]
+addsd xmm0, qword[sStep]
+movsd qword[s], xmm0
+
+movsd xmm0, qword[fltZero]
+movsd qword[t], xmm0
+
+fourthFunction:
+	;cos(t)/3 + 2cos(2pis)/3
+	movsd xmm0, qword[t]
+	call cos
+	divsd xmm0, qword[fltThree]
+	movsd qword[x], xmm0
+	
+	;tcos(4pis + 2pi/3) / 6pi
+	movsd xmm1, qword[fltTwo]
+	mulsd xmm1, qword[pi]
+	divsd xmm1, qword[fltThree]
+	
+	movsd xmm2, qword[fltFour]
+	mulsd xmm2, qword[pi]
+	mulsd xmm2, qword[s]
+	
+	addsd xmm1, xmm2
+	
+	movsd xmm0, qword[t]
+	call cos
+	mulsd xmm0, qword[t]
+	
+	mulsd xmm0, xmm1
+	
+	movsd xmm2, qword[fltSix]
+	mulsd xmm2, qword[pi]
+	
+	divsd xmm0, xmm2
+	
+	movsd qword[x], xmm0
+	
+	
+
+endFourthFunction:
+
+movsd xmm0, qword[s]
+addsd xmm0, qword[sStep]
+movsd qword[s], xmm0
+
+movsd xmm0, qword[fltZero]
+movsd qword[t], xmm0
 
 ; -----
 ;  Display image
