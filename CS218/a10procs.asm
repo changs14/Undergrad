@@ -219,6 +219,10 @@ convertSpeedLoop:
 	cmp r8, NULL
 	je endSpeedConvert
 	sub r8, 0x30
+	cmp r8, 7
+	ja errorSpeedSize
+	cmp r8, 0
+	jb errorSpeedSize
 	mul r15
 	add rax, r8
 	mov r10, rax
@@ -259,6 +263,10 @@ convertColourLoop:
 	cmp r8, NULL
 	je endColourConvert
 	sub r8, 0x30
+	cmp r8, 7
+	ja errorColourSize
+	cmp r8, 0
+	jb errorColourSize
 	mul r15
 	add rax, r8
 	mov r10, rax
@@ -298,6 +306,10 @@ convertSizeLoop:
 	cmp r8, NULL
 	je endSizeConvert
 	sub r8, 0x30
+	cmp r8, 7
+	ja errorSizeValue
+	cmp r8, 0
+	jb errorSizeValue
 	mul r15
 	add rax, r8
 	mov r10, rax
