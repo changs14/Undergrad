@@ -2,31 +2,63 @@
    NSHEID: 2001508920
    Class: CS 302
    Assignment: 3
-   Description: 
+   Description:
 */
 
+#include "func.h"
+#include <fstream>
 #include <iostream>
 #include <string>
-#include<fstream>
-#include "func.h"
+#include <vector>
 
-int main(){
-    //File variables
-    std::string line; 
-    std::string filename;
-    std::ifstream inFile;
+int main() {
+  // Initialize vector of binTree nodes
+  std::vector<binTree *> forest;
+  binTree * firstNode = new binTree();
+  forest.push_back(firstNode);
 
-    do{
-        std::cout<<"Enter filename: \n";
-        std::cin>>filename;
+  // File variables
+  std::string line;
+  std::string filename;
+  std::ifstream inFile;
 
-        inFile.open(filename.c_str());
+  int num = 0;
+  int freq = 0; //Temp var to store the frequency
 
-        if(!inFile.is_open()){
-            std::cout<<"Invalid file. \n";
-        }
-    }while(inFile.fail());
+  do {
+    std::cout << "Enter filename: ";
+    std::cin >> filename;
 
+    inFile.open(filename.c_str());
 
-    return 0;
+    if (!inFile.is_open()) {
+      std::cout << "Invalid file. \n";
+    }
+  } while (inFile.fail());
+
+  std::cout << "\n";
+
+  //Get info from file and store into binary tree
+  for(int i=0; i<30; i++){
+    //Get the letter number
+    inFile>>line;
+    num = std::stoi(line); //Convert number to ascii
+    char let = char(num);
+    std::cout<<let<<"\n";
+    
+    //Get the frequency
+    inFile>>line;
+    freq = std::stoi(line);
+
+    //Create bintree
+    binTree * tempTree = new binTree(tempTree, );
+
+    binTree * previousTree = tempTree;
+    
+
+    
+    
+    }
+
+  return 0;
 }
