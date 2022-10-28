@@ -346,6 +346,10 @@ mov rsp, rbp
 
 push r12
 push r13
+push r14
+
+mov r12, rdi
+mov r13, rsi
 
 mov rax, SYS_read
 mov rsi, header
@@ -358,8 +362,26 @@ jne errorSignature
 cmp byte[header+1], 'M'
 jne errorSignature
 
-errorSignature:
+;Get the width of the original picture
+;  4 width				(+18)
 
+mov r11d, dword[header+18*4]
+movsxd r10, r11d
+mov qword[rdx], r10
+
+jmp endReadFile
+	
+
+
+errorSignature:
+	mov rdi, errFileType
+	call printString
+	mov rax, FALSE
+	jmp endReadFile
+
+endReadFile:
+
+pop r14
 pop r13
 pop r12
 
