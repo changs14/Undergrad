@@ -369,6 +369,12 @@ mov r11d, dword[header+18*4]
 movsxd r10, r11d
 mov qword[rdx], r10
 
+;Get the height of the original picture
+
+mov r11d, dword[header+22*4]
+movsxd r10, r11d
+mov qword[rcx], r10
+
 jmp endReadFile
 	
 
