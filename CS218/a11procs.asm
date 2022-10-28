@@ -159,11 +159,15 @@ mov r9, 0
 checkFirst:
 	mov al, byte[r8+r9]
 	cmp al, '.'
-	jne continueFirst
 	je checkAfter
 	
-checkAfter:
+	cmp r9, NULL
+	je endFirst
+	
 	inc r9
+	jmp checkFirst
+	
+checkAfter:
 	mov al, byte[r8+r9]
 	cmp al, 'b'
 	jne invalidFileType
@@ -175,10 +179,6 @@ checkAfter:
 	cmp al, 'p'
 	jne invalidFileType
 	jmp endFirst
-	
-continueFirst:
-	inc r9
-	jmp checkFirst
 	
 invalidFileType:
 	mov rdi, errReadName
@@ -205,11 +205,15 @@ mov r9, 0
 checkSecond:
 	mov al, byte[r8+r9]
 	cmp al, '.'
-	jne continueSecond
 	je checkAfter2
 	
-checkAfter2:
+	cmp r9, NULL
+	je endSecond
+	
 	inc r9
+	jmp checkFirst
+	
+checkAfter2:
 	mov al, byte[r8+r9]
 	cmp al, 'b'
 	jne invalidFileType2
@@ -221,10 +225,6 @@ checkAfter2:
 	cmp al, 'p'
 	jne invalidFileType2
 	jmp endSecond
-	
-continueSecond:
-	inc r9
-	jmp checkFirst
 	
 invalidFileType2:
 	mov rdi, errWriteName
@@ -282,6 +282,9 @@ errorCreate:
 	jmp endGetParams
 	
 endGetParams:
+
+mov rdi, r12
+mov rsi, r13
 
 pop r13
 pop r12
@@ -343,6 +346,19 @@ mov rsp, rbp
 
 push r12
 push r13
+
+mov rax, SYS_read
+mov rsi, header
+mov rdx, BUFF_SIZE
+syscall
+
+;Check bm
+cmp byte[header], 'B'
+jne errorSignature
+cmp byte[header+1], 'M'
+jne errorSignature
+
+errorSignature:
 
 pop r13
 pop r12
