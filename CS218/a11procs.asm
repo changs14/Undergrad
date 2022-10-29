@@ -375,6 +375,11 @@ mov r11d, dword[header+22*4]
 movsxd r10, r11d
 mov qword[rcx], r10
 
+;Update the file size
+;  4 file size				(+2)
+mov r11d, dword[header+2*4]
+
+
 jmp endReadFile
 	
 
