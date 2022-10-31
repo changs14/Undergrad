@@ -193,17 +193,11 @@ checkAfter:
 	jne invalidFileType
 	jmp endFirst
 	
-invalidFileType:
-	mov rdi, errReadName
-	call printString
-	mov rax, FALSE
-	jmp endGetParams
-	
 endFirst:
 
 ;Attempt to open the first file
 mov rax, SYS_open
-mov rdi, qword[r13+1*8]
+mov rdi, r14
 mov rsi, O_RDONLY
 syscall
 
@@ -240,26 +234,34 @@ checkAfter2:
 	cmp al, 'p'
 	jne invalidFileType2
 	jmp endSecond
-	
-invalidFileType2:
-	mov rdi, errWriteName
-	call printString
-	mov rax, FALSE
-	jmp endGetParams
+
 	
 endSecond:
 
 ;Open the second file
 mov rax, SYS_creat
-mov rdi, qword[r13+2*8]
-mov rsi, S_IRUSR | S_IWUSR | S_IXUSR
+mov rdi, r14
+mov rsi, S_IRUSR | S_IWUSR
 syscall
+
 cmp rax, 0
 jl errorCreate
 
 mov rcx, rax
 
 jmp validArguments
+
+invalidFileType2:
+	mov rdi, errWriteName
+	call printString
+	mov rax, FALSE
+	jmp endGetParams
+
+invalidFileType:
+	mov rdi, errReadName
+	call printString
+	mov rax, FALSE
+	jmp endGetParams
 
 fewArguments:
 	mov rdi, errIncomplete
@@ -297,9 +299,6 @@ validArguments:
 	jmp endGetParams
 	
 endGetParams:
-
-mov rdi, r12
-mov rsi, r13
 
 pop r15
 pop r14
@@ -357,10 +356,6 @@ ret
 
 global setImageInfo
 setImageInfo:
-
-push rbp
-mov rsp, rbp
-
 push r12
 push r13
 push r14
@@ -375,14 +370,15 @@ mov r15, rcx
 mov rax, SYS_read
 mov rdi, r12
 mov rsi, header
-mov rdx, BUFF_SIZE
+mov rdx, HEADER_SIZE
+
 syscall
 
+cmp rax, 0
+jl errorReadHeader
 
 ;Check bm
-cmp byte[header], 'B'
-jne errorSignature
-cmp byte[header+1], 'M'
+cmp word[header+2], 'BM'
 jne errorSignature
 
 ;Get the file size
@@ -423,6 +419,12 @@ jl errorWrite
 
 
 jmp validReadFile
+
+errorReadHeader:
+	mov rdi, errReadHdr
+	call printString
+	mov rax, FALSE
+	jmp endReadFile
 
 errorDepth:
 	mov rdi, errDepth
@@ -466,9 +468,6 @@ pop r15
 pop r14
 pop r13
 pop r12
-
-mov rbp, rsp
-pop rbp
 
 ret
 
@@ -552,6 +551,7 @@ continueRead:
 	cmp r10, rax
 	jle continueRead
 	
+	mov qword[pixelCount], rax
 	mov rax, TRUE
 	
 	jmp endReadByteFunc
@@ -564,7 +564,11 @@ errorReadByte:
 	jmp endReadByteFunc
 
 
-endReadByteFunc:	
+endReadByteFunc:
+
+mov rdi, r12
+mov rsi, r13
+mov rdx, qword[pixelCount] 	
 	
 pop r15
 pop r14
@@ -605,9 +609,32 @@ global writeRow
 writeRow:
 
 push rbp
+push r12
+push r13
 
-;mov
+mov r12, rsi	;Get the width 
+mov r13, 3
+mul r13
 
+mov rsi, rdx
+mov rdx, rax
+mov rax, SYS_write
+syscall
+
+cmp rax, 0
+jl errorRowWrite
+
+mov rax, TRUE
+jmp endRowWrite
+
+errorRowWrite:
+	mov rax, FALSE
+	jmp endRowWrite
+	
+endRowWrite:
+
+pop r13
+pop r12
 pop rbp
 
 ret
