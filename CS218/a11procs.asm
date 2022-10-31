@@ -1,3 +1,13 @@
+;  Name: Stephaney Chang
+;  NSHE ID: 2001508920
+;  Section: 1002
+;  Assignment: 6
+;  Description:	Simple program that will take input from a user via
+;		command line of the input image and new image (in bmp)
+;		The program will do error checking such as invalid files
+;		size, colours, etc. If all error checking passes, then
+;		display resized bmp image.
+
 ;  CS 218 - Assignment #11
 ;  Functions Template
 
@@ -141,6 +151,8 @@ mov rsp, rbp
 
 push r12
 push r13
+push r14
+push r15
 
 mov r12, rdi
 mov r13, rsi
@@ -153,29 +165,30 @@ jl fewArguments
 jg tooManyArguments
 
 ;Check for bmp of the first file
-mov r8, qword[r13+1*8]
-mov r9, 0
+mov r14, qword[r13+1*8]
+mov r15, 0
 
 checkFirst:
-	mov al, byte[r8+r9]
+	mov al, byte[r14+r15]
 	cmp al, '.'
 	je checkAfter
 	
-	cmp r9, NULL
+	cmp r15, NULL
 	je endFirst
 	
-	inc r9
+	inc r15
 	jmp checkFirst
 	
 checkAfter:
-	mov al, byte[r8+r9]
+	mov al, byte[r14+r15]
 	cmp al, 'b'
 	jne invalidFileType
-	inc r9
-	mov al, byte[r8+r9]
+	inc r15
+	mov al, byte[r14+r15]
 	cmp al, 'm'
 	jne invalidFileType
-	inc r9
+	inc r15
+	mov al, byte[r14+r15]
 	cmp al, 'p'
 	jne invalidFileType
 	jmp endFirst
@@ -193,35 +206,37 @@ mov rax, SYS_open
 mov rdi, qword[r13+1*8]
 mov rsi, O_RDONLY
 syscall
+
 cmp rax, 0
 jl errorOnOpen
 
-mov qword[rdx], rax
+mov rdx, rax
 
 ;Check bmp of second file
-mov r8, qword[r13+2*8]
-mov r9, 0
+mov r14, qword[r13+2*8]
+mov r15, 0
 
 checkSecond:
-	mov al, byte[r8+r9]
+	mov al, byte[r14+r15]
 	cmp al, '.'
 	je checkAfter2
 	
-	cmp r9, NULL
+	cmp r15, NULL
 	je endSecond
 	
-	inc r9
-	jmp checkFirst
+	inc r15
+	jmp checkSecond
 	
 checkAfter2:
-	mov al, byte[r8+r9]
+	mov al, byte[r14+r15]
 	cmp al, 'b'
 	jne invalidFileType2
-	inc r9
-	mov al, byte[r8+r9]
+	inc r15
+	mov al, byte[r14+r15]
 	cmp al, 'm'
 	jne invalidFileType2
-	inc r9
+	inc r15
+	mov al, byte[r14+r15]
 	cmp al, 'p'
 	jne invalidFileType2
 	jmp endSecond
@@ -237,12 +252,12 @@ endSecond:
 ;Open the second file
 mov rax, SYS_creat
 mov rdi, qword[r13+2*8]
-mov rsi, S_IRUSR | S_IWUSR
+mov rsi, S_IRUSR | S_IWUSR | S_IXUSR
 syscall
 cmp rax, 0
 jl errorCreate
 
-mov qword[rcx], rax
+mov rcx, rax
 
 jmp validArguments
 
@@ -265,10 +280,6 @@ errorUsage:
 	mov rax, FALSE
 	jmp endGetParams
 	
-validArguments:
-	mov rax, TRUE
-	jmp endGetParams
-	
 errorOnOpen:
 	mov rdi, errReadFile
 	call printString
@@ -281,11 +292,17 @@ errorCreate:
 	mov rax, FALSE
 	jmp endGetParams
 	
+validArguments:
+	mov rax, TRUE
+	jmp endGetParams
+	
 endGetParams:
 
 mov rdi, r12
 mov rsi, r13
 
+pop r15
+pop r14
 pop r13
 pop r12
 mov rbp, rsp
@@ -347,14 +364,20 @@ mov rsp, rbp
 push r12
 push r13
 push r14
+push r15
 
 mov r12, rdi
 mov r13, rsi
+mov r14, rdx
+mov r15, rcx
 
+;Get the header
 mov rax, SYS_read
+mov rdi, r12
 mov rsi, header
 mov rdx, BUFF_SIZE
 syscall
+
 
 ;Check bm
 cmp byte[header], 'B'
@@ -362,36 +385,84 @@ jne errorSignature
 cmp byte[header+1], 'M'
 jne errorSignature
 
-;Get the width of the original picture
-;  4 width				(+18)
+;Get the file size
+mov ax, word[header+18]
+mov r10, 0
+mov bx, word[header+22]
+mul bx
+mov r11w, 3
+mul r11w
+add ax, HEADER_SIZE
+cmp ax, word[header+2]
+jne errorSize
 
-mov r11d, dword[header+18*4]
-movsxd r10, r11d
-mov qword[rdx], r10
+;Replace the old header
+mov rax, r8
+mul r9
+mov r11w, 3
+mul r11w
+add rax, HEADER_SIZE
+mov dword[header+2], eax
 
-;Get the height of the original picture
+;Check the depth
+cmp dword[header+28], 24
+jne errorDepth
 
-mov r11d, dword[header+22*4]
-movsxd r10, r11d
-mov qword[rcx], r10
+;Check compression
+cmp dword[header+30], 0
+jne errorCompression 
 
-;Update the file size
-;  4 file size				(+2)
-mov r11d, dword[header+2*4]
+mov rax, SYS_write
+mov rdi, r13
+mov rsi, header
+mov rdx, HEADER_SIZE
+syscall
+
+cmp rax, 0
+jl errorWrite
 
 
-jmp endReadFile
+jmp validReadFile
+
+errorDepth:
+	mov rdi, errDepth
+	call printString
+	mov rax, FALSE
+	jmp endReadFile
 	
-
+errorCompression:
+	mov rdi, errCompType
+	call printString
+	mov rax, FALSE
+	jmp endReadFile
+	
+errorWrite:
+	mov rdi, errWriteHdr
+	call printString
+	mov rax, FALSE
+	jmp endReadFile
 
 errorSignature:
 	mov rdi, errFileType
 	call printString
 	mov rax, FALSE
 	jmp endReadFile
+	
+errorSize:
+	mov rdi, errSize
+	call printString
+	mov rax, FALSE
+	jmp endReadFile
+	
+validReadFile:
+	mov rax, TRUE
+	mov rdx, r14
+	mov rcx, r15
+	jmp endReadFile
 
 endReadFile:
 
+pop r15
 pop r14
 pop r13
 pop r12
@@ -412,9 +483,9 @@ ret
 ;	bool = readRow(readFileDesc, picWidth, rowBuffer[]);
 
 ;   Arguments:
-;	- read file descriptor (value)
-;	- image width (value)
-;	- row buffer (address)
+;	- read file descriptor (value) - rdi
+;	- image width (value) - rsi
+;	- row buffer (address) - rdx
 ;  Returns:
 ;	TRUE or FALSE
 
@@ -432,6 +503,74 @@ ret
 global readRow
 readRow:
 
+push r12
+push r13
+push r14
+push r15
+
+;Preserve arguments
+mov r12, rdi
+mov r13, rsi
+mov r14, rdx
+
+mov r8, 0
+mov r9, qword[curr]
+
+mov r15, qword[buffMax]
+cmp r15, qword[curr]
+jg continueRead
+	
+cmp byte[wasEOF], TRUE
+je endReadByteFunc
+
+;read the file header
+mov rax, SYS_read
+mov rdi, r12
+mov rsi, buffer
+mov rdx, BUFF_SIZE
+syscall
+
+cmp rax, 0
+jl errorReadByte
+mov qword[curr], 0
+
+cmp rax, BUFF_SIZE
+jge continueRead
+mov byte[wasEOF], TRUE
+mov qword[buffMax], rax
+
+continueRead:
+	mov al, byte[buffer+r10]
+	inc r10
+	mov qword[curr], r10
+	mov byte[rdx+r10], al
+	inc r10
+	
+	mov rax, r13
+	mov r11, 3
+	mul r11
+	cmp r10, rax
+	jle continueRead
+	
+	mov rax, TRUE
+	
+	jmp endReadByteFunc
+
+
+errorReadByte:
+	mov rdi, errRead
+	call printString
+	mov rax, FALSE
+	jmp endReadByteFunc
+
+
+endReadByteFunc:	
+	
+pop r15
+pop r14
+pop r13
+pop r12
+
 ret
 
 
@@ -445,9 +584,9 @@ ret
 ;	bool = writeRow(writeFileDesc, picWidth, rowBuffer);
 
 ;  Arguments are:
-;	- write file descriptor (value)
-;	- image width (value)
-;	- row buffer (address)
+;	- write file descriptor (value) -rdi
+;	- image width (value) - rsi
+;	- row buffer (address) - rdx
 
 ;  Returns:
 ;	N/A
@@ -464,6 +603,12 @@ ret
 ;	YOUR CODE GOES HERE
 global writeRow
 writeRow:
+
+push rbp
+
+;mov
+
+pop rbp
 
 ret
 
