@@ -106,29 +106,54 @@ common	narcissisticNumbers	100:8
 global narcissisticNumberCounter
 narcissisticNumberCounter:
 
-push rbp
-mov rbp, rsp
-
+push rbx
 push r12
 push r13
+push r14
+push r15
 
 mov r12, 0
 mov r13, qword[userLimit] ;User inputted limit
+mov r15, 0 ;index of narc number list
 
 ;Print thread starting message
 mov rdi, msgThread1
 call printString
 
-;while(true) loop
 
+whileLoop:
+	call spinLock
+	mov rbx, qword[currentIndex]
+	add qword[currentIndex], BLOCK_SIZE
+	call spinUnlock
+	
+	cmp rbx, r13
+	ja endWhileLoop
+	
+	mov r9, 1	;Digit counter
+	mov r10, 0	;tmp counter	
+	mov r11, 0	;Sum of digits
+	mov r14, 0
+	
+	cmp qword[userLimit], BLOCK_SIZE
+	jb continue
 
+	mov rcx, BLOCK_SIZE
 
+	jmp calculateDigits
 
+continue:
+	mov rcx, qword[userLimit]
+
+calculateDigits:	
+	
+endWhileLoop:
+
+pop r15
+pop r14
 pop r13
 pop r12
-
-mov rsp, rbp
-pop rbp
+pop rbx
 
 ret
 
@@ -225,13 +250,14 @@ cmp byte[r10+2], NULL
 jne errorThreadSpec
 
 ;Check thread count value
-mov al, byte[r13+2*8]
-sub al, 0x30			;Convert string to int
+mov r10, qword[r13+2*8]
+mov al, byte[r10]
+sub al, '0'			;Convert string to int
 
-cmp al, 6
-ja errorThreadCount
 cmp al, 0
 jbe errorThreadCount
+cmp al, 6
+ja errorThreadCount
 
 mov dword[rdx], eax
 
@@ -249,16 +275,18 @@ jne errorLSpec
 mov r10, qword[r13+4*8]
 
 mov rdi, r10
+mov rsi, tmpNum
 call aSept2int
 
 ;return value in rsi
-cmp qword[rsi], LIMITMIN
+cmp qword[tmpNum], LIMITMIN
 jb errorLSize
-cmp qword[rsi], LIMITMAX
+cmp qword[tmpNum], LIMITMAX
 ja errorLSize
 
 mov qword[rcx], rsi
 mov rax, TRUE
+
 jmp endRead
 
 errorLSize:
@@ -325,40 +353,35 @@ ret
 global aSept2int
 aSept2int:
 
-push rbp
-mov rbp, rsp
 
 push r12
 push r13
 
 mov rax, 0
-mov r10, 0
-mov rcx, 0
+mov r12, 0
+mov r13, 7
 
 convertIntLoop:
-	movsx r8, byte[rdi+r10]		;Get char to convert
+	movsx r8, byte[rdi+r12]		;Get char to convert
 	
 	cmp r8, NULL
 	je endIntConvert		;Check if end of string
 	
 	sub r8, 0x30			;Convert string to int
-	mov qword[tmpNum], r8
-	mul rcx
-	add rax, qword[tmpNum]
+	mul r13
+	add rax, r8
 	mov qword[rsi], rax
 	
-	inc r10
+	inc r12
 	jmp convertIntLoop
 	
 endIntConvert:
-	mov qword[rsi], rax
+	mov rsi, rax
 	mov rax, TRUE
 
 pop r13
 pop r12
 
-mov rsp, rbp
-pop rbp
 
 ret
 
