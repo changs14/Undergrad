@@ -381,6 +381,13 @@ jl errorReadHeader
 cmp word[header+2], 'BM'
 jne errorSignature
 
+<<<<<<< Updated upstream
+=======
+<<<<<<< HEAD
+
+
+=======
+>>>>>>> Stashed changes
 ;Get the file size
 mov ax, word[header+18]
 mov r10, 0
@@ -444,6 +451,10 @@ errorWrite:
 	mov rax, FALSE
 	jmp endReadFile
 
+<<<<<<< Updated upstream
+=======
+>>>>>>> 1a926e930dd75b32999c91223a3db6d5d33efb3a
+>>>>>>> Stashed changes
 errorSignature:
 	mov rdi, errFileType
 	call printString
