@@ -1,9 +1,10 @@
 ###########################################################################
-#  Name: 
-#  NSHE ID: 
-#  Section: 
+#  Name: Stephaney Chang	
+#  NSHE ID: 2001508920
+#  Section: 1002
 #  Assignment: MIPS #3
-#  Description: 
+#  Description: Using functions shell sort a list of areas calculated. Then find the stats of the areas including
+#				min/max/med/avg/sum
 
 #  MIPS assembly language main program and functions:
 
@@ -610,7 +611,6 @@ prtHeaders:
 	lw	$s1, 4($sp)
 	add	$sp, $sp, 8
 
-	jr	$ra
 .end	prtHeaders
 
 #####################################################################
@@ -631,7 +631,62 @@ prtHeaders:
 #	areas[] surface areas array via passed address
 
 
-#	YOUR CODE GOES HERE
+
+.globl surfaceAreas
+.ent surfaceAreas
+surfaceAreas:
+
+# Preserve registers
+subu $sp, $sp, 28
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $s4, 16($sp)
+sw $fp, 20($sp)
+sw $ra, 24($sp)
+addu $fp, $sp, 28
+
+
+move $s0, $a0		# Apothems
+move $s1, $a1		# Bases
+move $s2, $a2		# Heights
+move $s3, $a3		# length
+lw $s4, ($fp)
+
+calculateLoop:
+	lw $t0, ($s0)	# Apothems
+	lw $t1, ($s1)	# Bases
+	lw $t2, ($s2)	# Heights
+	
+
+	# heights + apothems
+	add $t5, $t0, $t2
+	mul $t5, $t5, $t1
+	mul $t5, $t5, 6
+
+	sw $t5, ($s4)		# Save areas
+
+	addu $s0, $s0, 4
+	addu $s1, $s1, 4
+	addu $s2, $s2, 4
+	addu $s4, $s4, 4
+
+	subu $s3, $s3, 1
+	bnez $s3, calculateLoop
+
+# Restore registers
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $s4, 16($sp)
+lw $fp, 20($sp)
+lw $ra, 24($sp)
+addu $sp, $sp, 28
+jr $ra
+
+.end surfaceAreas
 
 
 
@@ -648,8 +703,109 @@ prtHeaders:
 #    Returns:
 #	sorted list (via reference)
 
+.globl shellSort
+.ent shellSort
+shellSort:
 
-#	YOUR CODE GOES HERE
+subu $sp, $sp, 32 
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $s4, 16($sp)
+sw $s5, 20($sp)
+sw $fp, 24($sp)
+sw $ra, 28($sp)
+addu $fp, $sp, 32 
+
+move $t0, $a0
+move $t1, $a1
+
+# while(h*3+1) < length
+# h = t2
+li $t2, 1
+hLoop:
+	mul $t3, $t2, 3
+	add $t2, $t2, 1
+	bne $t2, $t1, hLoop
+
+endHLoop:
+
+# note h = t2
+whileLoop:
+	move $t3, $t2
+	sub $t3, $t3, 1		#t3 = i=h-1
+	bgtz $t3, firstForLoop	#h is above 0
+	b endSort
+
+	firstForLoop:	
+		move $t4, $t3	# Get i
+		move $t5, $t4	# j = i
+
+		move $s2, $t4
+		add $s3, $s0, $s2
+		lw $t6, ($s3)	# Get array item
+		move $t7, $t6		# t7 = temp
+
+		b secondForLoop
+
+		secondForLoop:
+			#t5 = j
+			#t8 = j-h
+			sub $t8, $t5, $t3
+
+			# lst[j-h]
+			move $s2, $t8
+			add $s3, $s0, $s2
+			lw $t9, ($s3)
+			
+			#list[j]
+			move $s2, $t4
+			add $s0, $s0, $s2
+			sw $t9, ($s0)	
+
+			# h = t2 j = t5
+			blt $t5, $t2, endFirstForLoop
+
+			#t7 - temp t9 = lst[j-h]
+			ble $t9, $t7, endFirstForLoop
+
+			# j = j-h
+			move $t5, $t8
+
+			b secondForLoop
+
+		endFirstForLoop:
+			#t5 = j
+			#t7 - temp
+
+			move $s2, $t5
+			add $s0, $s0, $s2
+			sw $t7, ($s0)		# lst[j] = temp
+
+			bgt $t4, $t1, endWhileLoop
+
+			add $t4, $t4, 1
+			b firstForLoop
+
+	endWhileLoop:
+		div $t2, $t2, 3
+		b whileLoop
+
+endSort:
+
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $s4, 16($sp)
+lw $s5, 20($sp)
+lw $fp, 24($sp)
+lw $ra, 28($sp)
+addu $sp, $sp, 32
+
+
+.end shellSort
 
 
 
@@ -666,9 +822,24 @@ prtHeaders:
 #    Returns:
 #	$f0   - float average
 
+.globl findSum
+.ent findSum
+findSum:
+
+move $t0, $a0
+move $t1, $a1
+li $v0, 0
+
+calcSum:
+	lw $t2, ($t0)
+	add $v0, $v0, $t2
+
+	add $t0, $t0, 4
+	sub $t1, $t1, 1
+	bnez $t1, calcSum
 
 
-#	YOUR CODE GOES HERE
+.end findSum
 
 
 
@@ -686,7 +857,33 @@ prtHeaders:
 #	$v0   - sum
 
 
-#	YOUR CODE GOES HERE
+.globl findAverage
+.ent findAverage
+findAverage:
+
+subu $sp, $sp, 8	# preserve registers
+sw $s0, 0($sp)
+sw $ra, 4 ($sp)
+
+addu $fp, $sp, 8	# set frame pointer
+
+move $s0, $a1 # Get length
+
+jal findSum
+move $t0,  $v0	# Save sum
+
+mtc1 $t1, $f6
+cvt.s.w $f6, $f6
+mtc1 $s0, $f7
+cvt.s.w $f7, $f7
+div.s $f0, $f6, $f7
+
+lw $s0, 0($sp)
+lw $ra, 4($sp)	
+addu $sp, $sp, 8
+
+
+.end findAverage
 
 
 
@@ -714,8 +911,87 @@ prtHeaders:
 #    Returns (via reference):
 #	min, max, med, fAve
 
+.globl surfaceAreasStats
+.ent surfaceAreasStats
+surfaceAreasStats:
 
-#	YOUR CODE GOES HERE
+subu $sp, $sp, 24 # preserve registers
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $fp, 16($sp)
+sw $ra, 20($sp)
+addu $fp, $sp, 24 # set frame pointer
+
+move $s0, $a0	#Get diagonals
+move $s1, $a1	#Get length
+
+li $t0, 0
+lw $t1, ($s0)	# Minimum
+lw $t2, ($s0)	# Maximum
+li $t3, 0
+
+statsLoop:
+	lw $t4, ($s0)		# Get diagonals
+	bge $t4, $t1, notMinimum
+	move $t1, $t4		#set new min
+
+notMinimum:
+	ble $t4, $t2, notMaximum
+	move $t2, $t4
+
+notMaximum:
+	add $t3, $t3, $t4		# Sum
+	addu $s0, $s0, 4
+	addu $t0, $t0, 1
+	blt $t0, $a1, statsLoop
+
+	sw $t1, ($a2)
+
+	sw $t2, ($a3)
+
+move $t0, $s0
+move $t1, $s1	# Get length
+li $t3, 0
+li $t4, 0
+
+sub $t7, $t1, 1
+mul $t8, $t7, 4
+add $t3, $t0, $t8	# Change index
+lw $t2, ($t3)		# Get last item in array
+add $t4, $t4, $t2	# Add to the sum
+
+div $t5, $t1, 2		# length/2
+mul $t5, $t5, 4
+add $t3, $t0, $t5	# Change the index
+lw $t2, ($t3)		# Get first middle value
+add $t4, $t4, $t2	# Add to the sum
+
+sub $t5, $t5, 4
+add $t3, $t0, $t5
+lw $t2, ($t3)
+add $t4, $t4, $t2
+
+div $t6, $t4, 4		# Divide 4
+
+lw $t9, ($fp)
+sw $t6, ($t9)
+
+# Find return the average
+lw $s2, 4($fp)
+jal findAverage
+s.s $f0, ($s2)
+
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $fp, 16($sp)
+lw $ra, 20($sp)
+addu $sp, $sp, 24
+
+.end surfaceAreasStats
 
 
 
@@ -743,8 +1019,15 @@ prtHeaders:
 #    Returns:
 #	N/A
 
+.globl showAreasStats
+.ent showAreasStats
+showAreasStats:
 
-#	YOUR CODE GOES HERE
+#  Save registers.
+
+
+
+.end showAreasStats
 
 
 
