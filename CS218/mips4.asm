@@ -819,11 +819,12 @@ makeCallsDone:
 displayBoard:
 
 #Preserve registers
-subu $sp, $sp, 12
+subu $sp, $sp, 20
 sw $s0, 0($sp)
 sw $s1, 4($sp)
 sw $s2, 8($sp)
-addu $fp, $sp, 12
+sw $s3, 12($sp)
+sw $ra, 16($sp)
 
 move $s0, $a0		# Board
 move $s1, $a1		# Size
@@ -838,13 +839,13 @@ move $a0, $s2
 syscall
 la $a0, newLine
 syscall
+syscall
 
 # Print two spaces
-li $v0, 4			# Call code
 la $a0, blnk	
 syscall
 
-li $t1, 3			# Counter for dashes
+move $t1, $s1			# Counter for dashes
 
 # Print three dashes
 threeDashes:
@@ -853,7 +854,6 @@ threeDashes:
 	syscall
 
 	# Print space
-	li $v0, 4
 	la $a0, blnk
 	syscall
 
@@ -861,11 +861,8 @@ threeDashes:
 	bnez $t1, threeDashes
 
 # Print new line
-li $v0, 4
 la $a0, newLine
 syscall
-
-li $v0, 4
 la $a0, bar
 syscall
 
@@ -877,11 +874,11 @@ move $t4, $s1
 mul $t2, $t2, $t2
 li $t3, 0
 
-
 # Note t2 is size counter
 li $t7, 0
 
 print:
+	mul $t5, $t
 	# Print space
 	li $v0, 4
 	la $a0, blnk
@@ -911,8 +908,6 @@ print:
 	li $v0, 4				
 	la $a0, newLine
 	syscall
-
-	li $v0, 4
 	la $a0, bar
 	syscall
 
@@ -930,7 +925,7 @@ syscall
 la $a0, blnk
 syscall
 
-li $t1, 3
+move $t1, $s1
 # Print three dashes
 threeDashes2:
 	li $v0, 4
@@ -938,7 +933,6 @@ threeDashes2:
 	syscall
 
 	# Print space
-	li $v0, 4
 	la $a0, blnk
 	syscall
 
@@ -952,7 +946,10 @@ syscall
 lw $s0, 0($sp)
 lw $s1, 4($sp)
 lw $s2, 8($sp)
-addu $sp, $sp, 12
+lw $s3, 12($sp)
+lw $ra, 16($sp)
+
+jr $ra
 
 .end displayBoard
 
@@ -977,12 +974,49 @@ addu $sp, $sp, 12
 .ent	manhattanDistance
 manhattanDistance:
 
+#Preserve registers
+subu $sp, $sp, 20
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $ra, 16($sp)
+
+move $s0, $a0	# Get goal board
+move $s1, $a1	# Get board address
+move $s2, $a2	# Size of board
+
+li $t0, 0		# x1
+li $t1, 0		# x2
+li $t2, 0		#y1
+li $t3, 0		# y2
 
 
-#	YOUR CODE GOES HERE
+li $t6, 0		# x distance placeholder
+li $t7, 0		# y distance placeholder
+li $v0, 0
+
+sub $t6, $t0, $t1	# x1 - x2
+sub $t7, $t2, $t3	# y1 - y2
+add $t8, $t6, $t7
+
+li $v0, 4
+la $a0, MDmsg
+syscall
+
+li $v0, 1
+move $a0, $t8
+syscall
 
 
+#Restore registers
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $ra, 16($sp)
 
+jr $ra
 
 .end	manhattanDistance
 
