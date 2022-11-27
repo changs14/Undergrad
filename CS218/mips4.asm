@@ -872,21 +872,33 @@ syscall
 #sqrt t4
 move $t4, $s1
 mul $t2, $t2, $t2
-li $t3, 0
 
 # Note t2 is size counter
-li $t7, 0
+li $t1, 0	
+li $t3, 0
+li $t5, 0
+lw $t6, ($s0)
+li $t7, 0	
+li $t8, 0
 
 print:
+	bleu $t6, 9, printBlank
+	b printContinue
+
+printBlank:
+	li $v0, 4
+	la $a0, blnk
+	syscall
+
+printContinue:
 	# Print space
 	li $v0, 4
 	la $a0, blnk
 	syscall
-	syscall
 
 	# Print the array value
 	li $v0, 1
-	lw $a0, ($s0)
+	move $a0, $t6
 	syscall
 
 	# Print bar
@@ -895,14 +907,27 @@ print:
 	syscall
 	
 	# Update counters
-	add $s0, $s0, 4			# Array counter
-	sub $t2, $t2, 1			# Loop counter
 
+	#r * colSize
+	mul $t5, $t8, $t4
+
+	#r*colSize + c
+	add $t5, $t5, $t3
+
+	#(r*colSize+c) *4
+	mul $t5, $t5, 4
+
+	add $t5, $t5, $s0 #address+(r*colSize=c) * datasize
+
+	#Load in value
+	lw $t6, ($t5)
+
+	sub $t2, $t2, 1			# Loop counter
 	beq $t7, $t2,  end		# Check if equal to 0 to end print loop
 
 	add $t3, $t3, 1			# Inc num of numbers in a line
-	bne $t4, $t3 notNewLine	# Did not reach max num per line
-	
+	bne $t4, $t3 notNewLine	# Did not reach max n
+
 	# Print new line
 	li $v0, 4				
 	la $a0, newLine
@@ -910,6 +935,7 @@ print:
 	la $a0, bar
 	syscall
 
+	add $t8, $t8, 1
 	li $t3, 0				# Reset num per line
 
 	notNewLine:
@@ -947,6 +973,7 @@ lw $s1, 4($sp)
 lw $s2, 8($sp)
 lw $s3, 12($sp)
 lw $ra, 16($sp)
+addu $sp, $sp, 20
 
 jr $ra
 
@@ -993,9 +1020,47 @@ jr $ra
 .ent	validateBoard
 validateBoard:
 
-#	YOUR CODE GOES HERE
+#Preserve registers
+subu $sp, $sp, 32
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $s4, 16($sp)
+sw $s5, 20($sp)
+sw $s6, 24($sp)
+sw $ra, 28($sp)
+
+move $s0, $a0		# Save board
+move $s1, $a1		# Save order
+
+move $t1, $s1
+mul $t1, $t1, $t1	#order^2
+li $t2, 0
+
+#tstArr
+validateLoop:
+	lw $t0, ($s0)	# Get number
+
+	add $s0, $s0, 4
+	add $t2, $t2, 1
+	bne $t2, $t1 validateLoop
+
+
+
 li $v0, TRUE
 
+
+#Restore registers
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $s4, 16($sp)
+lw $s5, 20($sp)
+lw $s6, 24($sp)
+lw $ra, 28($sp)
+addu $sp, $sp, 32
 
 jr $ra
 
