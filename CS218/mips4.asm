@@ -1000,6 +1000,82 @@ jr $ra
 .ent	manhattanDistance
 manhattanDistance:
 
+subu $sp, $sp, 40
+sw $s0, 0($sp)
+sw $s1, 4($sp)
+sw $s2, 8($sp)
+sw $s3, 12($sp)
+sw $s4, 16($sp)
+sw $s5, 20($sp)
+sw $s6, 24($sp)
+sw $s7, 28($sp)
+sw $ra, 32($sp)
+
+move $s0, $a0		# Reference board
+move $s1, $a1		# Board to compare
+move $s2, $a2		# Length
+move $s3, $a2		# Length counter
+
+li $s4, 0			# x1 
+li $s5, 0			# y1
+li $s6, 0			# Current index for reference
+
+li $t4, 0			# x2
+li $t5, 0			# x3
+li $t6, 0			# Current index for compare
+
+li $t0, 0			# Row
+li $t1, 0			# Column
+
+# Misc
+li $t2, 0
+li $t3, 01
+
+# Use s for reference board
+# Use t for compare board
+
+sumLoop:
+	# Get item in list
+	mul $s6, $t0, $s2# r * colSize
+	add $s6, $s6, $t1	# r* colSize + c
+	mul $s6, $s6, 4		#(r* colSize + c) * dataSize
+	move $t6, $s6
+	add $s6, $s6, $s0	# (r* colSize +c) * dataSize + address - Reference
+	add $t6, $t6, $s1	# (r* colSize +c) * dataSize + address - Compare
+	lw $s7, ($s6)		# Get the data item of reference
+	lw $t7, ($t6)		# Get data item of compare
+
+	# Save coord of current  data in reference
+	move $s4, $t0		# Row
+	move $s5, $s1		# Column
+
+	# Compare data items
+
+	# If equal, continue
+
+	# Not equal, loop through entire of second grid to find the index
+
+continue:
+	
+	add $t0, $t0, 1 	# Row++
+	add $t1, $t1, 1		# Col++
+
+	#Loop counter
+	sub $s3, $s3, 1
+	bnez $s3, sumLoop
+
+
+#Restore registers
+lw $s0, 0($sp)
+lw $s1, 4($sp)
+lw $s2, 8($sp)
+lw $s3, 12($sp)
+lw $s4, 16($sp)
+lw $s5, 20($sp)
+lw $s6, 24($sp)
+lw $s7, 28($sp)
+lw $ra, 32($sp)
+addu $sp, $sp, 40
 jr $ra
 
 .end	manhattanDistance
