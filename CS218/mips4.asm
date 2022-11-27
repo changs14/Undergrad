@@ -878,7 +878,6 @@ li $t3, 0
 li $t7, 0
 
 print:
-	mul $t5, $t
 	# Print space
 	li $v0, 4
 	la $a0, blnk
@@ -974,48 +973,6 @@ jr $ra
 .ent	manhattanDistance
 manhattanDistance:
 
-#Preserve registers
-subu $sp, $sp, 20
-sw $s0, 0($sp)
-sw $s1, 4($sp)
-sw $s2, 8($sp)
-sw $s3, 12($sp)
-sw $ra, 16($sp)
-
-move $s0, $a0	# Get goal board
-move $s1, $a1	# Get board address
-move $s2, $a2	# Size of board
-
-li $t0, 0		# x1
-li $t1, 0		# x2
-li $t2, 0		#y1
-li $t3, 0		# y2
-
-
-li $t6, 0		# x distance placeholder
-li $t7, 0		# y distance placeholder
-li $v0, 0
-
-sub $t6, $t0, $t1	# x1 - x2
-sub $t7, $t2, $t3	# y1 - y2
-add $t8, $t6, $t7
-
-li $v0, 4
-la $a0, MDmsg
-syscall
-
-li $v0, 1
-move $a0, $t8
-syscall
-
-
-#Restore registers
-lw $s0, 0($sp)
-lw $s1, 4($sp)
-lw $s2, 8($sp)
-lw $s3, 12($sp)
-lw $ra, 16($sp)
-
 jr $ra
 
 .end	manhattanDistance
@@ -1036,12 +993,11 @@ jr $ra
 .ent	validateBoard
 validateBoard:
 
-
-
 #	YOUR CODE GOES HERE
+li $v0, TRUE
 
 
-
+jr $ra
 
 .end validateBoard
 
