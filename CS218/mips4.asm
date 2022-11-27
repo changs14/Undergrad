@@ -1027,18 +1027,21 @@ li $t6, 0			# Current index for compare
 li $t0, 0			# Row
 li $t1, 0			# Column
 
-# Misc
-li $t2, 0
-li $t3, 01
+# Misc registers
+li $t2, 0			# Calculate loop row
+li $t3, 0			# Calculate loop col
+li $t7, 0
+li $t8, 0			# Running sum of manhattan distance
+li $t9, 0
 
 # Use s for reference board
 # Use t for compare board
 
-sumLoop:
+manhattanLoop:
 	# Get item in list
-	mul $s6, $t0, $s2# r * colSize
+	mul $s6, $t0, $s2	# r * colSize
 	add $s6, $s6, $t1	# r* colSize + c
-	mul $s6, $s6, 4		#(r* colSize + c) * dataSize
+	mul $s6, $s6, 4		# (r* colSize + c) * dataSize
 	move $t6, $s6
 	add $s6, $s6, $s0	# (r* colSize +c) * dataSize + address - Reference
 	add $t6, $t6, $s1	# (r* colSize +c) * dataSize + address - Compare
@@ -1049,20 +1052,55 @@ sumLoop:
 	move $s4, $t0		# Row
 	move $s5, $s1		# Column
 
-	# Compare data items
+	# Start from the current index of $t6
+	move $t2, $t0			# Get row
+	move $t3, $t1			# Get col
 
-	# If equal, continue
+	bne $s7, $t7, findLoop
 
-	# Not equal, loop through entire of second grid to find the index
+	b continue			# Both values are in the same spot
+
+
+
+# Find the index that has the number in $s7
+findLoop:
+	# Get next data item
+	mul $t8, $t2, $s2
+	add $t8, $t8, $t3
+	mul $t8, $t8, 4
+	add $t8, $t8, $s1
+	lw $t9, ($t8)
+
+	bne $s7, $t9, nextFindLoop
+	move $t4, $t2
+	move $t5, $t3
+
+	b continue
+	
+nextFindLoop:
+	add $t2, $t2, 1
+	add $t3, $t3, 1
+	
+	b findLoop
+
+
 
 continue:
-	
-	add $t0, $t0, 1 	# Row++
+	beq $t1, $s2, newCol
 	add $t1, $t1, 1		# Col++
 
-	#Loop counter
+	b continue2
+
+newCol:
+	li $t1, 0
+	b continue2
+	
+continue2:
+	add $t0, $t0, 1 	# Row++
+
+	# Loop counter
 	sub $s3, $s3, 1
-	bnez $s3, sumLoop
+	bnez $s3, manhattanLoop
 
 
 #Restore registers
@@ -1143,4 +1181,3 @@ jr $ra
 .end validateBoard
 
 ######################################################################
-
