@@ -946,6 +946,7 @@ threeDashes2:
 
 la $a0, newLine					# Print new line
 syscall
+syscall
 
 #Restore registers
 lw $s0, 0($sp)
@@ -1037,10 +1038,11 @@ manhattanLoop:
 	move $t2, $t0			# Get row
 	move $t3, $t1			# Get col
 
+	move $t6, $s3
 	bne $t7, $s7, findLoop
 
 	sub $s3, $s3, 1
-	beq $s3, $s2, endLoop
+	beqz $s3, endLoop
 
 	add $t1, $t1, 1		# Column++
 	bne $t1, $s2, notNewRow
@@ -1054,18 +1056,20 @@ manhattanLoop:
 	endLoop:
 		bnez $s3, manhattanLoop
 
-skip:
-	b skip2
+b skip2
 
 findLoop:
 	# Get next data item
-	mul $t8, $t2, $s2 			#row * colSize
+	mul $t8, $t2, $s2 			# row * colSize
 	add $t8, $t8, $t3			# row* Colsize + column
 	mul $t8, $t8, 4				# mul datasize
 	add $t8, $t8, $s1			# get second list item
 	lw $t9, ($t8)
 
 	beq $s7, $t9, calculate
+
+	sub $t6, $t6, 1
+	beqz $6, moreEndsLol
 
 	add $t3, $t3, 1
 	bne $t3, $s2, notNewRow2
@@ -1074,7 +1078,9 @@ findLoop:
 	li $t3, 0
 
 	notNewRow2:
-		ble $t2, $s2, findLoop
+
+	moreEndsLol:
+		bnez $t6, findLoop
 
 calculate:
 	#Manhattan distance things
@@ -1086,10 +1092,11 @@ calculate:
 
 	add $t4, $t4, $t5
 	add $s8, $s8, $t4
-	
+
+update:
 	# Update counters
 	sub $s3, $s3, 1
-	beq $s3, $s2, skip2
+	beqz $s3, endLoop3
 
 	add $t1, $t1, 1		# Column++
 	bne $t1, $s2, notNewRow3
@@ -1108,8 +1115,6 @@ skip2:
 
 # Display the distance
 li $v0, 4
-la $a0, newLine
-syscall
 
 la $a0, MDmsg
 syscall
