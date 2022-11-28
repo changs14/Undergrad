@@ -1016,12 +1016,14 @@ move $s1, $a1		# Board to compare
 move $s2, $a2		# Length
 move $s3, $a2		# Length counter
 
+mul $s3, $s3, $s3
+
 li $s4, 0			# x1 
 li $s5, 0			# y1
 li $s6, 0			# Current index for reference
 
 li $t4, 0			# x2
-li $t5, 0			# x3
+li $t5, 0			# y2
 li $t6, 0			# Current index for compare
 
 li $t0, 0			# Row
@@ -1048,21 +1050,30 @@ manhattanLoop:
 	lw $s7, ($s6)		# Get the data item of reference
 	lw $t7, ($t6)		# Get data item of compare
 
-	# Save coord of current  data in reference
-	move $s4, $t0		# Row
-	move $s5, $s1		# Column
-
-	# Start from the current index of $t6
+	# Start from the current index of $t7
 	move $t2, $t0			# Get row
 	move $t3, $t1			# Get col
 
-	bne $s7, $t7, findLoop
+	bne $t7, $s7, findLoop
 
-	b continue			# Both values are in the same spot
+	sub $s3, $s3, 1
+	beq $s3, $s2, endLoop
 
+	add $t1, $t1, 1		# Column++
+	bne $t1, $s2, notNewRow
 
+	# Update row
+	add $t0, $t0, 1 	# Row++
+	li $t1, 0			# Reset row
 
-# Find the index that has the number in $s7
+	notNewRow:
+
+	endLoop:
+		bnez $s3, manhattanLoop
+
+skip:
+	b skip2
+
 findLoop:
 	# Get next data item
 	mul $t8, $t2, $s2
@@ -1071,36 +1082,40 @@ findLoop:
 	add $t8, $t8, $s1
 	lw $t9, ($t8)
 
-	bne $s7, $t9, nextFindLoop
+	beq $s7, $t9, calculate
+
+	add $t3, $t3, 1
+	bne $t3, $s2, notNewRow2
+
+	add $t2, $t2, 1
+	li $t3, 0
+
+	notNewRow2:
+		bnez, $t3, findLoop
+
+calculate:
+	#Manhattan distance things
 	move $t4, $t2
 	move $t5, $t3
 
-	b continue
-	
-nextFindLoop:
-	add $t2, $t2, 1
-	add $t3, $t3, 1
-	
-	b findLoop
-
-
-
-continue:
-	beq $t1, $s2, newCol
-	add $t1, $t1, 1		# Col++
-
-	b continue2
-
-newCol:
-	li $t1, 0
-	b continue2
-	
-continue2:
-	add $t0, $t0, 1 	# Row++
-
-	# Loop counter
+updateCounters:
+	# Update counters
 	sub $s3, $s3, 1
+	beq $s3, $s2, endLoop
+
+	add $t1, $t1, 1		# Column++
+	bne $t1, $s2, notNewRow
+
+	# Update row
+	add $t0, $t0, 1 	# Row++
+	li $t1, 0			# Reset row
 	bnez $s3, manhattanLoop
+
+skip2:
+
+# Display the distance
+
+
 
 
 #Restore registers
