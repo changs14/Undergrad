@@ -3,7 +3,7 @@
 #  NSHE ID: 2001508920
 #  Section: 1002
 #  Assignment: MIPS #4
-#  Description: 
+#  Description: This program will take two boards with a list of numbers and it will compute the manhattan distance.
 
 #  MIPS assembly language program to calculate
 #  the Manhattan Distance between two grids.
@@ -828,21 +828,21 @@ sw $ra, 16($sp)
 
 move $s0, $a0		# Board
 move $s1, $a1		# Size
-move $t2, $a1
+move $t2, $a1		# Save another var of size
 move $s2, $a2		# Title address
 
 # Print the border and header of the board
 li $v0, 4
-la $a0, brdHdr
+la $a0, brdHdr		# Print the border header
 syscall
-move $a0, $s2
+move $a0, $s2		# Print the name of the board
 syscall
-la $a0, newLine
+la $a0, newLine		# Print a new line
 syscall
-syscall
+syscall				# Print another line
 
 # Print two spaces
-la $a0, blnk	
+la $a0, blnk		#Print space
 syscall
 
 move $t1, $s1			# Counter for dashes
@@ -850,77 +850,61 @@ move $t1, $s1			# Counter for dashes
 # Print three dashes
 threeDashes:
 	li $v0, 4
-	la $a0, dashes
+	la $a0, dashes			#Print dash
 	syscall
 
-	# Print space
-	la $a0, blnk
-	syscall
-
-	sub $t1, $t1, 1
-	bnez $t1, threeDashes
+	sub $t1, $t1, 1			# dec counter
+	bnez $t1, threeDashes	# Loop again
 
 # Print new line
-la $a0, newLine
+la $a0, newLine				# Print new line
 syscall
-la $a0, bar
-syscall
+la $a0, bar					# Print |
+syscall	
 
 # Note counter is $t2
-
 # Get half of the size of the board to get num of elements in a line
 #sqrt t4
-move $t4, $s1
-mul $t2, $t2, $t2
+move $t4, $s1				# Get order
+mul $t2, $t2, $t2			# order^2
 
 # Note t2 is size counter
+# Misc registers for printing
 li $t1, 0	
 li $t3, 0
 li $t5, 0
-lw $t6, ($s0)
+lw $t6, ($s0)				# Get starting value of the board
 li $t7, 0	
 li $t8, 0
 
+# Print the board
 print:
-	bleu $t6, 9, printBlank
-	b printContinue
+	# Update counters
+	mul $t5, $t8, $t4				#r * colSize
+	add $t5, $t5, $t3				#r*colSize + c
+	mul $t5, $t5, 4					#(r*colSize+c) *4
+	add $t5, $t5, $s0 				#address+(r*colSize=c) * datasize
+
+	lw $t6, ($t5)					#Load in value
+
+	bleu $t6, 9, printBlank			# Check if current number is a single digit
+	b printContinue					# Not single digit
 
 printBlank:
 	li $v0, 4
-	la $a0, blnk
+	la $a0, blnk					# Print blank for single digit num
 	syscall
 
 printContinue:
-	# Print space
-	li $v0, 4
-	la $a0, blnk
-	syscall
-
 	# Print the array value
 	li $v0, 1
-	move $a0, $t6
+	move $a0, $t6					# Print board value
 	syscall
 
 	# Print bar
 	li $v0, 4
-	la $a0, bar
+	la $a0, bar						# Print |
 	syscall
-	
-	# Update counters
-
-	#r * colSize
-	mul $t5, $t8, $t4
-
-	#r*colSize + c
-	add $t5, $t5, $t3
-
-	#(r*colSize+c) *4
-	mul $t5, $t5, 4
-
-	add $t5, $t5, $s0 #address+(r*colSize=c) * datasize
-
-	#Load in value
-	lw $t6, ($t5)
 
 	sub $t2, $t2, 1			# Loop counter
 	beq $t7, $t2,  end		# Check if equal to 0 to end print loop
@@ -930,41 +914,37 @@ printContinue:
 
 	# Print new line
 	li $v0, 4				
-	la $a0, newLine
+	la $a0, newLine			# Print new line
 	syscall
-	la $a0, bar
+	la $a0, bar				# Print |
 	syscall
 
-	add $t8, $t8, 1
+	add $t8, $t8, 1			# Increment counter
 	li $t3, 0				# Reset num per line
 
 	notNewLine:
 
 	end:
-
-	bnez $t2, print
+		bnez $t2, print		# Loop back if order^2 reached 0
 
 li $v0, 4
-la $a0, newLine
+la $a0, newLine				# Print new line
 syscall
-la $a0, blnk
+la $a0, blnk				# Print space
 syscall
 
-move $t1, $s1
+move $t1, $s1				# Load in order
+
 # Print three dashes
 threeDashes2:
 	li $v0, 4
-	la $a0, dashes
+	la $a0, dashes				# Print ----
 	syscall
 
-	# Print space
-	la $a0, blnk
-	syscall
+	sub $t1, $t1, 1				# Decrement counter
+	bnez $t1, threeDashes2		# Loop if counter not 0
 
-	sub $t1, $t1, 1
-	bnez $t1, threeDashes2
-
-la $a0, newLine
+la $a0, newLine					# Print new line
 syscall
 
 #Restore registers
@@ -974,7 +954,6 @@ lw $s2, 8($sp)
 lw $s3, 12($sp)
 lw $ra, 16($sp)
 addu $sp, $sp, 20
-
 jr $ra
 
 .end displayBoard
@@ -1000,7 +979,8 @@ jr $ra
 .ent	manhattanDistance
 manhattanDistance:
 
-subu $sp, $sp, 40
+# Preserve registers
+subu $sp, $sp, 44
 sw $s0, 0($sp)
 sw $s1, 4($sp)
 sw $s2, 8($sp)
@@ -1009,7 +989,8 @@ sw $s4, 16($sp)
 sw $s5, 20($sp)
 sw $s6, 24($sp)
 sw $s7, 28($sp)
-sw $ra, 32($sp)
+sw $s8, 32($sp)
+sw $ra, 40($sp)
 
 move $s0, $a0		# Reference board
 move $s1, $a1		# Board to compare
@@ -1021,6 +1002,8 @@ mul $s3, $s3, $s3
 li $s4, 0			# x1 
 li $s5, 0			# y1
 li $s6, 0			# Current index for reference
+li $s7, 0
+li $s8, 0
 
 li $t4, 0			# x2
 li $t5, 0			# y2
@@ -1033,7 +1016,7 @@ li $t1, 0			# Column
 li $t2, 0			# Calculate loop row
 li $t3, 0			# Calculate loop col
 li $t7, 0
-li $t8, 0			# Running sum of manhattan distance
+li $t8, 0			
 li $t9, 0
 
 # Use s for reference board
@@ -1076,10 +1059,10 @@ skip:
 
 findLoop:
 	# Get next data item
-	mul $t8, $t2, $s2
-	add $t8, $t8, $t3
-	mul $t8, $t8, 4
-	add $t8, $t8, $s1
+	mul $t8, $t2, $s2 			#row * colSize
+	add $t8, $t8, $t3			# row* Colsize + column
+	mul $t8, $t8, 4				# mul datasize
+	add $t8, $t8, $s1			# get second list item
 	lw $t9, ($t8)
 
 	beq $s7, $t9, calculate
@@ -1091,31 +1074,54 @@ findLoop:
 	li $t3, 0
 
 	notNewRow2:
-		bnez, $t3, findLoop
+		ble $t2, $s2, findLoop
 
 calculate:
 	#Manhattan distance things
-	move $t4, $t2
-	move $t5, $t3
+	sub $t4, $t2, $t0
+	sub $t5, $t3, $t1
 
-updateCounters:
+	abs $t4, $t4
+	abs $t5, $t5
+
+	add $t4, $t4, $t5
+	add $s8, $s8, $t4
+	
 	# Update counters
 	sub $s3, $s3, 1
-	beq $s3, $s2, endLoop
+	beq $s3, $s2, skip2
 
 	add $t1, $t1, 1		# Column++
-	bne $t1, $s2, notNewRow
+	bne $t1, $s2, notNewRow3
 
 	# Update row
 	add $t0, $t0, 1 	# Row++
 	li $t1, 0			# Reset row
-	bnez $s3, manhattanLoop
+
+	notNewRow3: 
+
+	endLoop3:
+		bnez $s3, manhattanLoop
 
 skip2:
 
+
 # Display the distance
+li $v0, 4
+la $a0, newLine
+syscall
 
+la $a0, MDmsg
+syscall
 
+li $v0, 1
+move $a0, $s8
+syscall
+
+li $v0, 4
+la $a0, newLine
+syscall
+syscall
 
 
 #Restore registers
@@ -1127,8 +1133,9 @@ lw $s4, 16($sp)
 lw $s5, 20($sp)
 lw $s6, 24($sp)
 lw $s7, 28($sp)
-lw $ra, 32($sp)
-addu $sp, $sp, 40
+lw $s8, 32($sp)
+lw $ra, 40($sp)
+addu $sp, $sp, 44
 jr $ra
 
 .end	manhattanDistance
@@ -1162,20 +1169,48 @@ sw $ra, 28($sp)
 
 move $s0, $a0		# Save board
 move $s1, $a1		# Save order
+li $s2, 0			# Will hold board[i]
+li $s3, 0			# First loop counter
+li $s4, 0			# Second loop counter
 
 move $t1, $s1
 mul $t1, $t1, $t1	#order^2
-li $t2, 0
+sub $t1, $t1, 1		# Order^2 - 1
 
-#tstArr
+li $t2, 0			# Row
+li $t3, 0			# Column
+li $t5, 0
+li $t6, 0
+
+# tstArr for bools - loop the one board twice to check duplicate
 validateLoop:
-	lw $t0, ($s0)	# Get number
+	# Get the number in the board
+	# Get board[i]
+	mul $t4, $t2, $s1			# Row * colSize
+	add $t4, $t4, $t3			# Row * colSize + column
+	mul $t4, $t4, 4				# datasize
+	add $t4, $t4, $s0			# Get data
+	lw $s2, ($t4)
 
-	add $s0, $s0, 4
+	# Inner loop
+	move $t5, $t2				# Row
+	move $t6, $t3				# Column
+
+
+	sub $t1, $t1, 1
+	beq $t1, $s1, continueLoop
+
+	add $t3, $t3, 1
+	bne $t3, $s1, notNew
+
+	# Update row
 	add $t2, $t2, 1
-	bne $t2, $t1 validateLoop
+	li $t3, 0
 
+	notNew:
 
+	continueLoop:
+		bnez $t1, validateLoop
 
 li $v0, TRUE
 
