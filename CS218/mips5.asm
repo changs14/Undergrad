@@ -161,6 +161,7 @@ prtNewline:
 .ent	prtResults
 prtResults:
 
+# Preserve registers
 subu $sp, $sp, 24
 sw $fp, ($sp)
 sw $s0, 0($sp)
@@ -170,67 +171,79 @@ sw $s3, 12($sp)
 sw $s4, 16($sp)
 sw $ra, 20($sp)
 
-addu $fp, $sp, 24
+addu $fp, $sp, 24	# Stack
 
 # Save values
-move $s0, $a0
-move $s1, $a1
-move $s2, $a2
-move $s3, $a3
-lw $s4, ($fp)
+move $s0, $a0	# row
+move $s1, $a1	# col
+move $s2, $a2	# row + 1
+move $s3, $a3	# row +2
+lw $s4, ($fp)	# total Count
 
+# Print first message
 li $v0, 4
 la $a0, cntMsg1
 syscall
 
+# Print row
 li $v0, 1
 move $a0, $s0
 syscall
 
+# Print comma
 li $v0, 4
 la $a0, cntMsgComma
 syscall
 
+# Print col
 li $v0, 1
 move $a0, $s1
 syscall
 
+# Print second message
 li $v0, 4
 la $a0, cntMsg2
 syscall
 
+# Print end row
 li $v0, 1
 move $a0, $s2
 syscall
 
+# Print coma
 li $v0, 4
 la $a0, cntMsgComma
 syscall
 
+# Print end col
 li $v0, 1
 move $a0, $s3
 syscall
 
+# Print message
 li $v0, 4
 la $a0, cntMsg3
 syscall
 
+# Print total count
 li $v0, 1
 move $a0, $s4
 syscall
 
+# Print last message
 li $v0, 4
 la  $a0, cntMsg4
 syscall
 
+# Preserve registers
 lw $fp, ($sp)
-addu $sp, $sp, 24
 lw $s0, 0($sp)
 lw $s1, 4($sp)
 lw $s2, 8($sp)
 lw $s3, 12($sp)
-lw $s4, 15($sp)
+lw $s4, 16($sp)
 lw $ra, 20($sp)
+addu $sp, $sp, 24
 
 
 	jr	$ra
@@ -255,6 +268,7 @@ lw $ra, 20($sp)
 .ent	readCoords
 readCoords:
 
+# Preserve registers
 subu $sp, $sp, 20
 sw $s0, 0($sp)
 sw $s1, 4($sp)
@@ -262,7 +276,7 @@ sw $s2, 8($sp)
 sw $s3, 12($sp)
 sw $ra, 16($sp)
 
-getUserInput:
+getStartRow:
 	# Print the start row prompt
 	li $v0, 4
 	la $a0, strtRowPmt
@@ -273,7 +287,9 @@ getUserInput:
 	syscall
 	move $s0, $v0
 	bltz $s0, errorSize2
+	bgt $s0, COORD_MAX, errorSize2
 
+getStartColumn:
 	# Print the start column prompt
 	li $v0, 4
 	la $a0, strtColPmt
@@ -284,7 +300,9 @@ getUserInput:
 	syscall
 	move $s1, $v0
 	bltz $s1, errorSize2
+	bgt $s1, COORD_MAX, errorSize2
 
+getEndRow:
 	# Print end row pmt
 	li $v0, 4
 	la $a0, endRowPmt
@@ -294,7 +312,10 @@ getUserInput:
 	li $v0, 5
 	syscall
 	move $s2, $v0
+	bltz $s2, errorSize2
+	bgt $s2, COORD_MAX, errorSize2
 
+getEndColumn:
 	# End col prompt
 	li $v0, 4
 	la $a0, endColPmt
@@ -303,27 +324,41 @@ getUserInput:
 	li $v0, 5
 	syscall
 	move $s3, $v0
+	bltz $s3, errorSize2
+	bgt $s3, COORD_MAX, errorSize2
 
-# Compare the rows
-# a1 < a2
-bgt $s0, $s2, errorSize
-bgt $s1, $s3, errorSize
+	# Compare the rows
+	bge $s0, $s2, errorSizeRow # row > end row
+	bge $s1, $s3, errorSizeColumn # col > end col
 
-b skipError
+	b skipError
 
-errorSize:
+errorSizeRow:
+	# First coords smaller than end coords
 	li $v0, 4
 	la $a0, err1 
 	syscall
+	b getStartRow
 
-	b getUserInput
+errorSizeColumn:
+	# First coords smaller than end coords
+	li $v0, 4
+	la $a0, err1 
+	syscall
+	b getStartColumn
 
 errorSize2:
+	# First coords too small
 	li $v0, 4
 	la  $a0, err0
 	syscall
 
-	b getUserInput
+	bltz $s0, getStartRow
+	bltz $s1, getStartColumn
+	bltz $s2, getEndRow
+	bltz $s3, getEndColumn
+
+	b getStartRow
 
 skipError:
 
@@ -333,12 +368,13 @@ move $a1, $s1
 move $a2, $s2
 move $a3, $s3
 
-addu $sp, $sp, 20
+# Restore registers
 lw $s0, 0($sp)
 lw $s1, 4($sp)
 lw $s2, 8($sp)
 lw $s3, 12($sp)
 lw $ra, 16($sp)
+addu $sp, $sp, 20
 
 	jr	$ra
 .end	readCoords
@@ -365,6 +401,7 @@ lw $ra, 16($sp)
 .ent	countPaths
 countPaths:
 
+# Preserve registers
 subu $sp, $sp, 24
 sw $fp, ($sp)
 sw $s0, 0($sp)
@@ -380,34 +417,30 @@ move $s1, $a1	# start col
 move $s2, $a2	# end row
 move $s3, $a3	# end col
 
-bgt $s0, $s2, returnZero	# Compare row > end row
+bgt $s0, $s2, returnZero		# Compare row > end row
 bgt $s1, $s3, returnZero		# Compare col > end col
 
-beq $s0, $s2, returnOne
-beq $s1, $s3, returnOne
+beq $s0, $s2, returnOne			# Compare row = end row
+beq $s1, $s3, returnOne			# Compare col = end col
+
 
 # (c + 1)
-add $t0, $s1, 1
-
-move $a0, $s0
-move $a1, $t0
-move $a2, $s2
-move $a3, $s3
+move $a0, $s0			# Load in row
+add $a1, $a1, 1			# col +1
+move $a2, $s2			# load end row
+move $a3, $s3			# load end col
 jal countPaths
 
-# Save returned value
-move $s4, $v0
+move $s4, $v0# Save returned value
 
 # r+1
-add $t0, $s0, 1
-
-move $a0, $t0
-move $a1, $s1
-move $a2, $s2
-move $a3, $a3
+add $a0, $a0, 1			# row +1 
+move $a1, $s1			# col
+move $a2, $s2			# load end row
+move $a3, $a3			# load end ccol
 jal countPaths
 
-add $v0, $v0, $s4
+add $v0, $s4, $v0		# func(c+1) + func (r+1)
 
 b end
 
@@ -421,14 +454,15 @@ returnOne:
 
 end:
 
+# Restore registers
 lw $fp, ($sp)
-addu $sp, $sp, 24
 lw $s0, 0($sp)
 lw $s1, 4($sp)
 lw $s2, 8($sp)
 lw $s3, 12($sp)
-lw $s4, 15($sp)
+lw $s4, 16($sp)
 lw $ra, 20($sp)
+addu $sp, $sp, 24
 
 
 	jr	$ra
